@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Role Management" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<link rel="stylesheet" href="../static/javascript/layer/css/layui.css" />
+<style>
+	.fa-chevron-circle-left{
+		color:#3c8dbc;
+	}
+	.fa-chevron-circle-right{
+		color:#3c8dbc;
+	}
+	.fa-id-card-o{
+		color:#69aa46;
+	}
+</style>
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-user"></i> {% trans "Role Management" %}
+			</div>
+			{% if 'Draw_Process.views_panel_role_list_menu' in perms %}
+			<div class="box-tools pull-right">
+				{% if 'Draw_Process.views_panel_role_list_menu_search' in perms %}<a href="#" class="btn btn-default" id="btnSearch" title="Search"><i class="fa fa-filter"></i> {% trans "Search" %}</a>{% endif %}
+				{% if 'Draw_Process.views_panel_role_list_menu_new_role' in perms %}<a  class="btn btn-default" href="#" onclick="NewPage()"><i class="fa fa-plus"></i> {% trans "New Role" %}</a>{% endif %}
+				<!--{% if 'Draw_Process.views_panel_role_list_menu_excel' in perms %}-->
+				<!--<div class="btn-group">-->
+					<!--<a href="javascript:" class="btn btn-default dropdown-toggle" data-toggle="dropdown">-->
+						<!--<i class="fa fa-navicon"></i> <span class="caret"></span>-->
+					<!--</a>-->
+					<!--<ul class="dropdown-menu">-->
+						<!--{% if 'Draw_Process.views_panel_role_list_menu_excel_template' in perms %}<li><a href="/exportusertemplate/" id="template"><i class="glyphicon glyphicon-file"></i> {% trans "Template" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_role_list_menu_excel_import' in perms %}<li><a href="#" id="btnImport" onclick="upload()"><i class="glyphicon glyphicon-import"></i> {% trans "Import" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_role_list_menu_excel_export' in perms %}<li><a href="/exportuserlist/" id="btnExport"><i class="glyphicon glyphicon-export"></i> {% trans "Export" %}</a></li>{% endif %}-->
+					<!--</ul>-->
+				<!--</div>-->
+				<!--{% endif %}-->
+			</div>
+			{% endif %}
+		</div>
+		<div class="box-body">
+			<input type="file" id="open" style="display:none"/>
+			<form id="searchForm" action="/rolelist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				{% if 'Draw_Process.views_panel_role_list_menu_search' in perms %}
+				<div class="form-group">
+					<label class="control-label">{% trans "Organization" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="organization" name="organization" value="{{ organization }}" class="form-control width-120" autocomplete="off"/>
+						{% if readonly == "readonly" %}
+							<script>
+								document.getElementById("organization").readOnly = true;
+							</script>
+						{% endif %}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Role Code" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="roleCode" name="roleCode" value="" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Role Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="roleName" name="roleName" value="" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "System User" %}:</label>
+					<div class="control-inline width-60">
+						<select id="isSys" name="isSys" class="form-control ">
+							<option value="">&nbsp;</option>
+							<option value="1">{% trans "Yes" %}</option>
+							<option value="0">{% trans "No" %}</option>
+					   </select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "User Type" %}:</label>
+					<div class="control-inline width-90">
+						<select id="userType" name="userType" class="form-control ">
+							<option value="">&nbsp;</option>
+							<option value="employee">{% trans "Employee" %}</option>
+							<option value="member">{% trans "Member" %}</option>
+							<option value="btype">{% trans "Btype" %}</option>
+							<option value="person">{% trans "Person" %}</option>
+							<option value="expert">{% trans "Expert" %}</option>
+					   </select>
+					</div>
+				</div>
+<!--				<div class="form-group">-->
+<!--					<label class="control-label">{% trans "Status" %}:</label>-->
+<!--					<div class="control-inline width-60">-->
+<!--						<select id="status" name="status" class="form-control ">-->
+<!--							<option value="">&nbsp;</option>-->
+<!--							<option value="1">{% trans "Normal" %}</option>-->
+<!--							<option value="0">{% trans "Block" %}</option>-->
+<!--					   </select>-->
+<!--					</div>-->
+<!--				</div>-->
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				{% endif %}
+			</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/select2.zh_CN.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:200, align:"center"},
+		{header:'{% trans "Role Code" %}', name:'role_code', index:'role_code', width:120, align:"center", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="/orgroleedit/?roleCode='+row.role_code+'" class="btnList" data-title="{% trans 'Edit Role' %}">'+(val||row.id)+'</a>';
+		}},
+		{header:'{% trans "Role Name" %}', name:'role_name', index:'role_name', width:140, align:"center"},
+		{header:'{% trans "Sort" %}', name:'role_sort', index:'role_sort', width:100, align:"center"},
+		{header:'{% trans "System User" %}', name:'is_sys', index:'is_sys', width:120, align:"center"},
+		{header:'{% trans "User Type" %}', name:'user_type', index:'user_type', width:120, align:"center"},
+		{header:'{% trans "Update On" %}', name:'update_on', index:'update_on', width:200, align:"center"},
+		{header:'{% trans "Remarks" %}', name:'remarks', index:'remarks', width:300, align:"center"},
+		{header:'{% trans "Status" %}', name:'status', index:'status', width:100, align:"center"},
+		{header:'{% trans "Operation" %}', name:'actions', width:140, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var actions = [];
+				{% if 'Draw_Process.views_panel_role_list_table_edit' in perms %}
+				actions.push('<a href="/orgroleedit/?roleCode='+row.role_code+'" class="btnList" title="{% trans 'Edit Role' %}"><i class="fa fa-pencil"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_role_list_table_set_license' in perms %}
+				actions.push('<a href="#" onclick=setLicense("'+row.role_code+'") class="btnList" title="{% trans 'Set License' %}"><i class="fa fa-id-card-o"></i></a>&nbsp;');
+				{% endif %}
+				<!--{% if 'Draw_Process.views_panel_role_list_table_inactive' in perms %}-->
+				<!--if (row.status == "Normal"){-->
+					<!--actions.push('<a href="javascript:changeStatus('+"'"+row.role_code+"'"+","+"'"+"{% trans 'Are you sure to inactive this role' %}?"+"'"+');" class="btnList" title="{% trans 'Inactive Role' %}"><i class="glyphicon glyphicon-ban-circle"></i></a>&nbsp;');-->
+				<!--}else{-->
+					<!--actions.push('<a href="javascript:changeStatus('+"'"+row.role_code+"'"+","+"'"+"{% trans 'Are you sure to active this role' %}?"+"'"+');" class="btnList" title="{% trans 'Active Role' %}"><i class="glyphicon glyphicon-ok-circle"></i></a>&nbsp;');-->
+				<!--}-->
+				<!--{% endif %}-->
+				{% if 'Draw_Process.views_panel_role_list_table_delete' in perms %}
+				actions.push('<a href="#" onclick=deleteRole("'+row.role_code+'") class="btnList" title="{% trans 'Delete Role' %}"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_role_list_table_more' in perms %}
+				actions.push('<a href="javascript:" class="btnMore" title="{% trans 'more operation' %}"><i class="fa fa-chevron-circle-right"></i></a>&nbsp;');
+				actions.push('<div class="moreItems">');
+					{% if 'Draw_Process.views_panel_role_list_table_more_assign_user' in perms %}
+					actions.push('<a href="/roleassign/?roleCode='+row.role_code+'" class="btn btn-default btn-xs btnList" title="{% trans 'Assign User' %}" data-click-binded="true"><i class="fa fa-check-square-o"></i> {% trans 'Assign User' %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_role_list_table_more_permission' in perms %}
+					actions.push('<a href="/roleeditpermission/?roleCode='+row.role_code+'" class="btn btn-default btn-xs btnList" title="{% trans 'Permission' %}" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans 'Permission' %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_role_list_table_more_folder' in perms %}
+					actions.push('<a href="/rolefolderpermission/?roleCode='+row.role_code+'" class="btn btn-default btn-xs btnList" title="{% trans 'Folder Permission' %}" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans 'Folder Permission' %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_role_list_table_more_commander' in perms %}
+					actions.push('<a href="/rolecommanderpermission/?roleCode='+row.role_code+'" class="btn btn-default btn-xs btnList" title="{% trans 'Commander Permission' %}" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans 'Commander Permission' %}</a>&nbsp;');
+					{% endif %}
+				actions.push('</div>');
+				{% endif %}
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+	}
+});
+$("input[type='file']").change(function(){
+  var obj = document.getElementById("open");
+  var path = obj.files[0].name;
+  var data = {"path":path};
+  $("#open").val("");
+  $.ajax({
+    type:'POST',
+    url:'../uploaduser/',
+    dataType:'json',
+    data:data,
+    beforeSend:function(){
+    $('#loading').show();
+    },
+    success:function(data){
+    $('#loading').hide();
+    var msg = data.message;
+    var type = data.type;
+    if (type = "success"){
+    js.showMessage(msg);
+    }else{
+    js.showMessage(msg, null, 'warning');
+    }
+    }
+    });
+})
+
+function changeStatus(roleCode,title){
+	layer.confirm(title, {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Change Role Status" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../changerolestatus/',
+			dataType:'json',
+			data:{"roleCode":roleCode},
+			beforeSend:function(){
+				layer.load(1);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data.result;
+				if (result == 'success'){
+					layer.msg('{% trans "Change status successfully" %}!', {icon: 6});
+				}else{
+					var message = data['msg'];
+					layer.msg(message, {icon: 5});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		});
+	})
+}
+
+function deleteRole(roleCode){
+	layer.confirm('{% trans "Are you sure to delete this role" %}?', {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Delete Role" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../roledelete/',
+			dataType:'json',
+			data:{"roleCode":roleCode},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				var msg = data['message'];
+				if (result == "true"){
+					layer.msg(msg, {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(msg, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		})
+	})
+}
+<!--function openUserList(loginCode){-->
+<!--	var index = layer.open({-->
+<!--          type: 2,-->
+<!--          title: '{% trans "User Edit" %}',-->
+<!--          skin: 'layui-layer-lan',-->
+<!--          area: ['650px', '600px'],-->
+<!--          maxmin: true,-->
+<!--          content: '../orgedit/?user='+loginCode,-->
+<!--          })-->
+<!--    layer.full(index);-->
+<!--}-->
+function NewPage(){
+	window.location.href = "../orgroleadd/";
+}
+function upload(){
+	document.getElementById('open').click();
+}
+
+function setLicense(roleCode){
+	layer.prompt({
+        title: '{% trans "License Date" %}',
+        content: '<input id="licenseDateSetting" type="text" class="layui-layer-input" readonly>',
+        formType: 3
+    }, function (enddate, index) {
+		$.ajax({
+			type:'POST',
+			url:'../editrolelicense/',
+			dataType:'json',
+			data:{"roleCode":roleCode,"endDate":enddate},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				var msg = data['message'];
+				if (result == "true"){
+					layer.msg(msg, {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(msg, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				layer.close(index);
+			}
+		})
+    })
+    $("#licenseDateSetting").removeAttr("lay-key");
+    var laydate = layui.laydate;
+	{% if language == 'en' %}
+	laydate.render({
+		elem: "#licenseDateSetting",
+		trigger: 'click',
+		lang: 'en'
+	});
+	{% else %}
+	laydate.render({
+		elem: "#licenseDateSetting",
+		trigger: 'click',
+	});
+	{% endif %}
+}
+</script>
+</html>

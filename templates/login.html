@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>{% trans "Login" %}</title>
+<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+<style type="text/css">
+html{overflow-y:scroll;vertical-align:baseline;}
+body{font-family:Microsoft YaHei,Segoe UI,Tahoma,Arial,Verdana,sans-serif;font-size:12px;color:#fff;height:100%;line-height:1;background:#999}
+*{margin:0;padding:0}
+.right-top {position:absolute;top:10px;right:10px;}
+ul,li{list-style:none}
+h1{font-size:30px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.2);}
+.login-box{width:410px;position:absolute;text-align:center;padding:30px;background:url(../static/images/mask.png);border-radius:10px;}
+.login-box .name,.login-box .password,.login-box .code,.login-box .remember{font-size:16px;text-shadow:0 1px 2px rgba(0,0,0,.1);position: relative;display: block;}
+.login-box .remember input{box-shadow:none;width:15px;height:15px;margin-top:25px}
+.login-box .remember{padding-left:40px}
+.login-box .remember label{display:inline-block;height:42px;width:70px;line-height:34px;text-align:left}
+.login-box label{display:inline-block;width:100px;text-align:right;vertical-align:middle}
+.login-box #code{width:120px}
+.login-box .codeImg{float:right;margin-top:26px;}
+.login-box img{width:148px;height:42px;border:none}
+input[type=text],input[type=password]{width:270px;height:42px;margin-top:25px;padding:0px 15px;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:16px;background:transparent;}
+.button{cursor:pointer;width:100%;height:44px;line-height:44px;padding:0;background:#ef4300;border:1px solid #ff730e;border-radius:6px;font-weight:700;color:#fff;font-size:24px;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+input:focus{outline:none;box-shadow:0 2px 3px 0 rgba(0,0,0,.1) inset,0 2px 7px 0 rgba(0,0,0,.2)}
+.button:hover{box-shadow:0 15px 30px 0 rgba(255,255,255,.15) inset,0 2px 7px 0 rgba(0,0,0,.2)}
+.screenbg{position:fixed;bottom:0;left:0;z-index:-999;overflow:hidden;width:100%;height:100%;min-height:100%;}
+.screenbg ul li{display:block;list-style:none;position:fixed;overflow:hidden;top:0;left:0;width:100%;height:100%;z-index:-1000;float:right;}
+.screenbg ul a{left:0;top:0;width:100%;height:100%;display:inline-block;margin:0;padding:0;cursor:default;}
+.screenbg a img{vertical-align:middle;display:inline;border:none;display:block;list-style:none;position:fixed;overflow:hidden;top:0;left:0;width:100%;height:100%;z-index:-1000;float:right;}
+.bottom{margin:8px auto 0 auto;width:100%;position:fixed;text-align:center;bottom:0;left:0;overflow:hidden;padding-bottom:8px;color:#ccc;zoom:1;}
+.bottom a{color:#FFF;text-decoration:none;}
+.bottom a:hover{text-decoration:underline;}
+.form-control-feedback {
+    position: absolute;
+    margin-top: 40px;
+    top: 20;
+    right: 0;
+    z-index: 99999;
+    display: block;
+    width: 42px;
+    height: 42px;
+    line-height: 42px;
+    text-align: center;
+}
+.version-font {
+	font-size: 15px;
+	font-weight: 700;
+	color: #ffffff;
+	margin-bottom: 30px;
+	cursor: pointer;
+	background:transparent;
+	border-color:transparent;
+}
+.version-font2 {
+	font-size: 15px;
+	font-weight: 700;
+	color: #ffffff;
+	margin-bottom: 30px;
+	cursor: move;
+	background:#999;
+	border-color:#999;
+}
+</style>
+<link href="../static/images/icon/favicon.ico" rel="shortcut icon">
+<link rel="stylesheet" href="../static/style/information/layer.css"/>
+<link href="../static/javascript/jvisio-flow/lib/fonts/font-awesome.min.css" rel="stylesheet">
+<link href="../static/javascript/jvisio-flow/lib/fonts/simple-line-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="../static/style/information/toastr.min.css">
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/layer.js"></script>
+<script src="../static/javascript/information/toastr.min.js?V4.1-11052203"></script>
+<!--<script type="text/javascript" src="../static/javascript/layer/layui.all.en.js"></script>-->
+<script type="text/javascript">
+$(function(){
+	$("#language_value").val($("#language").val());
+	document.getElementById("language").onchange =function(){
+		$("#language_btn").click();
+		$("#language_value").val($("#language").val());
+	}
+	var div = document.getElementById("login-box");
+	var window_height = $(window).height();
+	var window_width = $(window).width();
+	$("#body").height(window_height);
+	div.style.top = (window_height - div.offsetHeight)/2 + "px";
+	div.style.left = (window_width - div.offsetWidth)/2 + "px";
+	$(".screenbg ul li").each(function(){
+		$(this).css("opacity","0");
+	});
+	$(".screenbg ul li:first").css("opacity","1");
+	var index = 0;
+	var t;
+	var li = $(".screenbg ul li");
+	var number = li.size();
+	function change(index){
+		li.css("visibility","visible");
+		li.eq(index).siblings().animate({opacity:0},3000);
+		li.eq(index).animate({opacity:1},3000);
+	}
+	function show(){
+		index = index + 1;
+		if(index<=number-1){
+			change(index);
+		}else{
+			index = 0;
+			change(index);
+		}
+	}
+	t = setInterval(show,8000);
+	//根据窗口宽度生成图片宽度
+	var width = $(window).width();
+	$(".screenbg ul img").css("width",width+"px");
+
+	var message = "{{ message }}";
+    var type = "{{ type }}";
+    if (type=="error"){
+    	toastr.error(message);
+    }
+    $(document).unbind('keydown').bind('keydown',
+		function(e) {
+			if (e.keyCode == 13) {
+				login();
+			}
+		}
+	)
+});
+function choosecbx(name){
+	var input = document.getElementById(name);
+	input.click();
+}
+</script>
+
+</head>
+
+<body id="body">
+	<form action="{% url 'set_language' %}" method="post" class="right-top">{% csrf_token %}
+		<input name="next" type="hidden" value="{{ redirect_to }}" />
+		<i class="fa fa-language fa-2x"></i>
+		<select name="language" id="language" class="version-font" style="width: 85px;">
+			{% get_current_language as LANGUAGE_CODE %}
+			{% get_available_languages as LANGUAGES %}
+			{% get_language_info_list for LANGUAGES as languages %}
+			{% for language in languages %}
+				<option value="{{ language.code }}" class="version-font2" {% if language.code == LANGUAGE_CODE %}selected{% elif language.code == en %}selected{% endif %}>
+					{{ language.name_local }}
+				</option>
+			{% endfor %}
+		</select>
+		<input id="language_btn" type="submit" value="{% trans 'Go' %}" style="display:none;"/>
+	</form>
+<div id="login-box" class="login-box">
+	<form id="loginForm" action="/login/" method="post">
+		{% csrf_token %}
+		<h1><span id="robot_id">ChocLead</span>
+			<select name="version" id="version" class="version-font" style="margin-bottom:0px !important;">
+				<option class="version-font2" value="1.0" disabled="true">V1.0</option>
+				<option class="version-font2" value="2.0" selected>V2.0</option>
+			</select>
+		</h1>
+		<input type="text" id="ip" name="ip" style="display:none"/>
+		<input type="text" id="language_value" name="language_value" style="display:none;"/>
+		<div class="name">
+			<label>{% trans "User" %}：</label>
+			<span class="fa fa-user form-control-feedback" title="login account"></span>
+			<input type="text" name="username"    id="username" tabindex="1" autocomplete="off" data-rule-required="true"  value="{{usernames}}"/>
+		</div>
+		<div class="password">
+			<label>{% trans "Password" %}：</label>
+			<span class="fa fa-lock form-control-feedback" title="show password" onmousedown="$('#password').attr('type','text')" onmouseup="$('#password').attr('type','password')"></span>
+			<input type="password" name="password"    maxlength="16" id="password" tabindex="2" data-rule-required="true"  value="{{pwd}}"/>
+		</div>
+		<div class="remember">
+			{% if  userchecked == '1' %}
+				<input type="checkbox" id="saveusername" name="saveuser"  checked="{{pwschecked}}"   tabindex="4">
+			{% else %}
+				<input type="checkbox" id="saveusername1"   name="saveuser" tabindex="4">
+			{% endif %}
+
+
+			<label style="font-size:14px;" title="remember username" onclick="choosecbx('saveusername')">{% trans "username" %}</label>
+			{% if  pwschecked == '1' %}
+				<input type="checkbox" id="savepassword"  checked="{{pwschecked}}"   name="savepsw" tabindex="4">
+			{% else %}
+				<input type="checkbox" id="savepassword1"   name="savepsw" tabindex="4">
+			{% endif %}
+
+			<label style="font-size:14px;" title="remember password" onclick="choosecbx('savepassword')">{% trans "password" %}</label>
+			<!--<a title="forget password" href="javascript:"><label style="width:130px;cursor:pointer;font-size:14px;"><u>{% trans "forget password" %}</u></label></a>-->
+			<a></a>
+		</div>
+		<div class="login">
+			<div id="submit_btn" class="button" tabindex="5" onclick="login()">{% trans "Login" %}</div>
+		</div>
+	</form>
+	<script>
+		function login(){
+			var username = $("#username").val();
+			var password = $("#password").val();
+			$.ajax({
+				type: 'POST',
+				async: false,
+				url: '../checklogin/',
+				dataType: 'json',
+				data: {"username":username,"password":password},
+				beforeSend: function() {
+					layer.load(2);
+				},
+				success: function(data) {
+					layer.closeAll('loading');
+					var result = data.result;
+					if (result == "yes"){
+						layer.msg('{% trans "You have logged on another computer,<br>do you want to end other logon?" %}',{
+							time: 20000,
+							btn: ['{% trans "Yes" %}', '{% trans "No" %}'],
+							btn1:function (index){
+								$("#loginForm").submit();
+							},
+						});
+					}else if(result == "no"){
+						$("#loginForm").submit();
+					}else if(result == "repeat"){
+						var msg = data.msg;
+						toastr.error(msg);
+					}
+				}
+			})
+		}
+	</script>
+</div>
+
+<div class="bottom">© 2020 Teclead Licence</div>
+
+<div class="screenbg">
+	<ul>
+		<li><a href="javascript:;"><img src="../static/images/1.png"></a></li>
+		<li><a href="javascript:;"><img src="../static/images/2.png"></a></li>
+		<li><a href="javascript:;"><img src="../static/images/3.png"></a></li>
+	</ul>
+</div>
+</body>
+</html>

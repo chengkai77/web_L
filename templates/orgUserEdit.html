@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+<meta charset="utf-8" />
+<title>{% trans "Edit User" %}</title>
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/zTreeStyle.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css" />
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css" />
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<script>
+$(document).ready(function(){
+    var loginCode = "{{ loginCode }}";
+    var ip = "{{ ip }}";
+    var nickName = "{{ nickName }}";
+    var location = "{{ location }}";
+    var officeName = "{{ officeName }}";
+    var company = "{{ companyName }}";
+    var email = "{{ email }}";
+    var mobile = "{{ mobile }}";
+    var phone = "{{ phone }}";
+    var department = "{{ department }}";
+    var departmentCode = "{{ departmentCode }}";
+    var area = "{{ area }}";
+    $("#loginCode").val(loginCode);
+    $("#ip").val(ip);
+    $("#nickName").val(nickName);
+    $("#officeName").val(officeName);
+    $("#company").val(company);
+    $("#email").val(email);
+    $("#mobile").val(mobile);
+    $("#phone").val(phone);
+    $("#department").val(department);
+    $("#departmentCode").val(departmentCode);
+    $("#area").val(area);
+})
+</script>
+</head>
+<body class="hold-transition ">
+  <input id="selectUrl" style="display:none;" />
+  <div class="wrapper">
+   <div class="main-content">
+    <div class="box box-main">
+     <div class="box-header with-border">
+      <div class="box-title">
+       <i class="fa icon-people"></i> {% trans "Edit User" %}
+      </div>
+      <div class="box-tools pull-right">
+       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+      </div>
+     </div>
+     <form id="inputForm" action="" method="post" class="form-horizontal">
+      <input type="hidden" id="op" name="op" value="add" />
+      <input type="hidden" id="userType" name="userType" value="employee" />
+      <input type="hidden" id="userCode" name="userCode" value="" />
+      <div class="box-body">
+       <div class="form-unit">
+        {% trans "Basic Information" %}
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Organization" %}: <i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            <input id="officeName" type="text" name="officeName" value="" readonly="readonly" class="form-control required " autocomplete="off" />
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Company" %}: <i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group treeselect" id="companyDiv" data-url="/companyselect/">
+            <input id="company" type="text" name="company" value="" class="form-control required " autocomplete="off" />
+            <span class="input-group-btn"><a id="companyButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a> </span>
+           </div>
+           <script>
+           $("#companyButton,#company").click(function(){
+               var org_com = $("#company").val();
+               $("#selectUrl").val($('#companyDiv').attr('data-url'));
+               if ($("#companyButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Company Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Yes" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       if (keyword != org_com){
+                           $("#department").val("");
+                           $("#departmentCode").val("");
+                       }
+                       $("#company").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "No" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           </script>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "User" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <input type="text" id="loginCode" name="loginCode" value="" minlength="4" maxlength="20" readonly="readonly" class="form-control required userName" />
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Nick Name" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <input type="text" id="nickName" name="nickName" value="" maxlength="32" class="form-control required " />
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Email" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="email" name="email" value="" maxlength="300" class="form-control email" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-envelope" style="margin-top:-2px;display:block;"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Mobile" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="mobile" name="mobile" value="" maxlength="100" class="form-control mobile" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-mobile" style="margin-top:-2px;display:block;"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Phone" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="phone" name="phone" value="" maxlength="100" class="form-control phone" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-phone"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required">*</span> {% trans "Location" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="area" name="area" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-location-arrow"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "IP" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="ip" name="ip" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="icon-location-pin"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required">*</span> {% trans "Department" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group treeselect" id="departmentDiv" data-url="/departmentselect/">
+            <input id="department" type="text" name="department" value="" readonly="readonly" class="form-control required " autocomplete="off" />
+            <input id="departmentCode" value="" style="display:none;" />
+            <span class="input-group-btn"><a id="departmentButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a> </span>
+           </div>
+           <script>
+           $("#departmentButton,#department").click(function(){
+               $("#selectUrl").val($('#departmentDiv').attr('data-url'));
+               if ($("#departmentButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Department Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       var treeId = win.$('#treeId').val();
+                       $("#departmentCode").val(treeId);
+                       $("#department").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           </script>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="box-footer">
+       <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
+         <button type="submit" class="btn btn-sm btn-primary" id="btnSubmit"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+         <button type="button" class="btn btn-sm btn-default" id="btnCancel" onclick="window.location.href = '../orguser'"><i class="fa fa-reply-all"></i> {% trans "Back" %}</button>
+        </div>
+       </div>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/jquery.ztree.all-3.5.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jquery.validate.js"></script>
+<script src="../static/javascript/information/messages_zh_CN.js"></script>
+<script src="../static/javascript/information/jquery.validate.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+$("#inputForm").validate({
+	submitHandler: function(form){
+		layer.load(1);
+		var organization = $('#officeName').val();
+		var company = $('#company').val();
+		var account = $('#loginCode').val();
+		var name = $('#nickName').val();
+		var email = $('#email').val();
+		var mobile = $('#mobile').val();
+		var phone = $('#phone').val();
+		var location = $("#area").val();
+		var department = $("#departmentCode").val();
+		var ip = $("#ip").val();
+		$.ajax({
+           type:'POST',
+           url:'../updateuserinformation/',
+           dataType:'json',
+           data:{"organization":organization,"company":company,"account":account,"name":name,"email":email,"mobile":mobile,"phone":phone,"location":location,"department":department,"ip":ip},
+           success:function(data){
+             layer.closeAll("loading");
+              var result = data['result'];
+              if (result == 'success'){
+                layer.msg('{% trans "Update successfully!" %}', {icon: 6});
+              }else{
+                var message = data['msg'];
+                layer.msg(message, {icon: 5});
+              }
+           }
+		 })
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+<meta charset="utf-8" />
+<title>{% trans "Account Management" %}</title>
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/zTreeStyle.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css" />
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css" />
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head>
+<body class="hold-transition ">
+  <input id="selectUrl" style="display:none;" />
+  <div class="wrapper">
+   <div class="main-content">
+    <div class="box box-main">
+     <div class="box-header with-border">
+      <div class="box-title">
+       <i class="fa icon-people"></i> {% trans "New User" %}
+      </div>
+      <div class="box-tools pull-right">
+       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+      </div>
+     </div>
+     <form id="inputForm" action="" method="post" class="form-horizontal">
+      <input type="hidden" id="op" name="op" value="add" />
+      <input type="hidden" id="userType" name="userType" value="employee" />
+      <input type="hidden" id="userCode" name="userCode" value="" />
+      <div class="box-body">
+       <div class="form-unit">
+        {% trans "Basic Information" %}
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Organization" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            {% if readonly != "readonly" %}<div class="input-group treeselect" id="officeNameDiv" data-url="/organizationselect/">{% endif %}
+            <input id="officeName" type="text" name="officeName" value="{{ organization }}" class="form-control required " autocomplete="off" />
+            {% if readonly != "readonly" %}<span class="input-group-btn"><a id="officeNameButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a></span></div>{% endif %}
+           <script>
+           {% if readonly == "readonly" %}
+           document.getElementById("officeName").readOnly = true;
+           {% else %}
+           $("#officeNameButton,#officeName").click(function(){
+               $("#selectUrl").val($('#officeNameDiv').attr('data-url'));
+               if ($("#officeNameButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Organization Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       $("#officeName").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           {% endif %}
+           </script>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Company" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group treeselect" id="companyDiv" data-url="/companyselect/">
+            <input id="company" type="text" name="company" value="" readonly="readonly" class="form-control required " autocomplete="off" />
+            <span class="input-group-btn"><a id="companyButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a> </span>
+           </div>
+           <script>
+           $("#companyButton,#company").click(function(){
+               $("#selectUrl").val($('#companyDiv').attr('data-url'));
+               if ($("#companyButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Company Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       $("#company").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('company', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           </script>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Login Account" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <input type="text" id="loginCode" name="loginCode" value="" minlength="4" maxlength="20" class="form-control required userName" remote="/checkuserid/" data-msg-remote="{% trans 'The login account already exists' %}" />
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Nick Name" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <input type="text" id="userName" name="userName" value="" maxlength="32" class="form-control required " />
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Email" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="email" name="email" value="" maxlength="300" class="form-control email" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-envelope" style="margin-top:-2px;display:block;"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Mobile" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="mobile" name="mobile" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-mobile" style="margin-top:-2px;display:block;"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Phone" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="phone" name="phone" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-phone"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required">*</span> {% trans "Location" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="area" name="area" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="fa fa-fw fa-location-arrow"></i></span>
+           </div>
+           <!--<div class="input-group treeselect" id="areaDiv" data-url="/areaselect/">-->
+            <!--<input id="area" type="text" name="department" value="" readonly="readonly" class="form-control required " autocomplete="off" />-->
+            <!--<input id="areaCode" value="" style="display:none;" />-->
+            <!--<span class="input-group-btn"><a id="areaButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a> </span>-->
+           <!--</div>-->
+           <!--<script>-->
+           <!--$("#areaButton,#area").click(function(){-->
+               <!--$("#selectUrl").val($('#areaDiv').attr('data-url'));-->
+               <!--if ($("#areaButton").hasClass("disabled")){-->
+                   <!--return true;-->
+               <!--}-->
+               <!--var options = {-->
+                   <!--type: 2,-->
+                   <!--maxmin: true,-->
+                   <!--shadeClose: true,-->
+                   <!--title: '{% trans "Area Selection" %}',-->
+                   <!--area: ['300px', '400px'],-->
+                   <!--content: "/treeselect/",-->
+                   <!--contentFormData: {-->
+                       <!--checkbox: 'false',-->
+                       <!--expandLevel: '-1',-->
+                       <!--isReturnValue: 'false'-->
+                   <!--},-->
+                   <!--success: function(layero, index){-->
+                       <!--if ($(layer.window).width() < 300-->
+                           <!--|| $(layer.window).height() < 400){-->
+                           <!--layer.full(index);-->
+                       <!--}-->
+                   <!--},-->
+                   <!--btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],-->
+                   <!--btn1: function(index, layero){-->
+                       <!--var win = layer.iframeWindow(index);-->
+                       <!--var keyword = win.$('#keyword').val();-->
+                       <!--var treeId = win.$('#treeId').val();-->
+                       <!--$("#areaCode").val(treeId);-->
+                       <!--$("#area").val(keyword);-->
+                   <!--}-->
+               <!--};-->
+               <!--options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');-->
+               <!--options['btn'+options.btn.length] = function(index, layero){-->
+                   <!--if(typeof treeselectCallback == 'function'){-->
+                       <!--treeselectCallback('area', 'cancel', index, layero);-->
+                   <!--}-->
+               <!--};-->
+               <!--layer.open(options);-->
+           <!--});-->
+           <!--</script>-->
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "IP" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group">
+            <input type="text" id="ip" name="ip" value="" maxlength="100" class="form-control" />
+            <span class="input-group-addon"><i class="icon-location-pin"></i></span>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required">*</span> {% trans "Department" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <div class="input-group treeselect" id="departmentDiv" data-url="/departmentselect/">
+            <input id="department" type="text" name="department" value="" readonly="readonly" class="form-control required " autocomplete="off" />
+            <input id="departmentCode" value="" style="display:none;" />
+            <span class="input-group-btn"><a id="departmentButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a> </span>
+           </div>
+           <script>
+           $("#departmentButton,#department").click(function(){
+               $("#selectUrl").val($('#departmentDiv').attr('data-url'));
+               if ($("#departmentButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Department Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       var treeId = win.$('#treeId').val();
+                       $("#departmentCode").val(treeId);
+                       $("#department").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           </script>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="form-unit">
+        {% trans "Assign Roles" %}
+       </div>
+       <div class="pl10 pb20">
+        <table id="roleGrid"></table>
+       </div>
+      </div>
+      <div class="box-footer">
+       <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
+         <button type="submit" class="btn btn-sm btn-primary" id="btnSubmit"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+         <button type="button" class="btn btn-sm btn-default" id="btnCancel" onclick="javascript:history.back(-1);"><i class="fa fa-reply-all"></i> {% trans "Back" %}</button>
+        </div>
+       </div>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+<script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/jquery.ztree.all-3.5.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.en.js"></script>
+<script src="../static/javascript/information/jquery.validate.js"></script>
+<script src="../static/javascript/information/jquery.validate.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+ {% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+<script src="../static/javascript/information/messages_zh_CN.js"></script>
+{% endif %}
+<script>
+$("#inputForm").validate({
+	submitHandler: function(form){
+		layer.load(1);
+        var json = {};
+        var roleList = new Array;
+        var ids = $("#roleGrid").jqGrid('getGridParam', 'selarrrow')
+        for (var i=0;i<ids.length;i++){
+          var rowData = $("#roleGrid").jqGrid('getRowData', ids[i]);
+          roleList.push(rowData.roleCode);
+        }
+        json.organization = $('#officeName').val();
+		json.company = $('#company').val();
+		json.account = $('#loginCode').val();
+		json.name = $('#userName').val();
+		json.email = $('#email').val();
+		json.mobile = $('#mobile').val();
+		json.phone = $('#phone').val();
+		json.location = $('#area').val();
+		json.department = $('#departmentCode').val();
+		json.ip = $('#ip').val();
+        json.roleCodes = roleList;
+		$.ajax({
+         type:'POST',
+         url:'../createuserid/',
+         dataType:'json',
+         data:json,
+         success:function(data){
+           layer.closeAll('loading');
+           var result = data.result;
+           if (result == "success"){
+             js.showMessage(data.msg);
+           }else{
+             js.showMessage(data.msg, null, 'warning');
+           }
+         }
+		 })
+    }
+});
+var roleGrid = $("#roleGrid").dataGrid({
+	url: '../userrolelist/?loginCode=',
+	columnModel: [
+		{header:'{% trans "Role Code" %}', name:'roleCode', sortable:false, width:100, align:"center"},
+		{header:'{% trans "Role Name" %}', name:'roleName', sortable:false, width:100, align:"center"}
+	],
+	showCheckbox: true,
+	autoGridHeight: function(){
+		return 'auto';
+	},
+	autoGridWidth: function(){
+		return $('#inputForm .box-body').width()-20;
+	},
+	ajaxSuccess: function(data){
+	    var rowList = data.list;
+	    var rowJson = {};
+	    for (var i=0;i<rowList.length;i++){
+	      rowJson[rowList[i].roleCode] = rowList[i].checked;
+	    }
+	    var obj = $("#roleGrid");
+        //获取grid表中所有的rowid值
+        var rowIds = obj.getDataIDs();
+        var arrayData = new Array();
+        if (rowIds.length > 0) {
+          for (var i = 0; i < rowIds.length; i++) {
+            var checked = rowJson[obj.getRowData(rowIds[i]).roleCode]
+            if (checked == "true"){
+              obj.jqGrid('setSelection',rowIds[i]);
+            }
+          }
+        }
+	}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Options" %}</title>
+<!--<script src="/Kostal-Web/global.min.js?ctx=/Kostal-Web"></script>-->
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/zTreeStyle.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head><body class="hold-transition box box-main">
+<div class="wrapper"><div class="treeShowHideButton" onclick="search();">
+	<label id="btnShow" title="show" style="display:none;">︾</label>
+	<label id="btnHide" title="hide">︽</label>
+</div>
+<div class="treeSearchInput" id="search">
+	<label for="keyword">{% trans "Keyword" %}:&nbsp</label><input type="text" class="empty" id="keyword" maxlength="50"/>
+	<input type="text" id="treeId" style="display:none;"/>
+	<button class="btn" id="btn" onclick="searchNode()">{% trans "Search" %} </button>
+</div>
+<div class="treeExpandCollapse" style="display:none;">
+	<a href="javascript:" onclick="tree.expandAll(true);">{% trans "Unfold" %}</a> /
+	<a href="javascript:" onclick="tree.expandAll(false);">{% trans "Fold" %}</a>
+</div>
+<div id="treeSelect" class="ztree treeselect"></div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/select2.zh_CN.js"></script>
+<script src="../static/javascript/information/layer.js"></script>
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.ztree.all-3.5.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+<script>
+var setting = {
+	view:{selectedMulti:false,dblClickExpand:false},
+	check:{enable:""=="true",nocheckInherit:true},
+	data:{key:{title:"title"},simpleData:{enable:true}},callback:{
+		onClick:function(event, treeId, treeNode){
+			$("#keyword").val(treeNode.name);
+			$("#treeId").val(treeNode.id);
+			tree.expandNode(treeNode);
+		},
+		onDblClick: function(){
+			layer.$('#' + window.name).closest('.layui-layer')
+				.find(".layui-layer-btn0").trigger("click");
+		}
+	}
+}, tree, loadTree = function(){
+	var url = parent.$("#selectUrl").val();
+	var organization = parent.$("#officeName").val();
+	var company = parent.$("#company").val();
+	$.post(url,{"organization":organization,"company":company},function(zNodes){
+		zNodes = zNodes.list;
+		tree = $.fn.zTree.init($("#treeSelect"), setting, zNodes);//.expandAll(true);
+		var nodes = tree.getNodesByParam("level", 0);
+		for(var i=0; i<nodes.length; i++) {
+			tree.expandNode(nodes[i], false, false, false);
+		}
+		<!--for(var i=0, l=nodes.length; i<l; i++) {-->
+			<!--if (nodes[i].children && nodes[i].children.length > 0){-->
+				<!--$('.treeExpandCollapse').show();-->
+				<!--break;-->
+			<!--}-->
+		<!--}-->
+		$.fn.zTree.expandNodeByLevel(tree, 0);
+		if (zNodes && zNodes.length > 0){
+			var selectCodes = "".split(",");
+			selectCheckNode(selectCodes);
+		}
+	});
+};loadTree();
+function selectCheckNode(selectCodes){
+	for(var i=0; i<selectCodes.length; i++) {
+		var isLoadUser = false;
+		var node = tree.getNodeByParam(''=='true'?'value':'id',
+				(isLoadUser?"u_":"") + selectCodes[i]);
+		if("" == "true"){
+			try{tree.checkNode(node, true, false);}catch(e){}
+			tree.selectNode(node, false);
+		}else{
+			tree.selectNode(node, true);
+		}
+	}
+}
+var lastValue = "", nodeList = [], key = $("#keyword");
+key.bind("focus", focusKey).bind("blur", blurKey).bind("change cut input propertychange", searchNode);
+key.bind("keydown", function (e){if(e.which == 13){searchNode();}});
+function focusKey(e) {
+	if (key.hasClass("empty")) {
+		key.removeClass("empty");
+	}
+}
+function blurKey(e) {
+	if (key.get(0).value === "") {
+		key.addClass("empty");
+	}
+	searchNode(e);
+}
+function searchNode() {
+	var value = $.trim(key.get(0).value);
+	var keyType = "name";
+	if (lastValue === value) {
+		return;
+	}
+	lastValue = value;
+	var nodes = tree.getNodes();
+	if (value == "") {
+		showAllNode(nodes);
+		return;
+	}
+	hideAllNode(nodes);
+	nodeList = tree.getNodesByParamFuzzy(keyType, value);
+	updateNodes(nodeList);
+}
+function hideAllNode(nodes){
+	nodes = tree.transformToArray(nodes);
+	for(var i=nodes.length-1; i>=0; i--) {
+		tree.hideNode(nodes[i]);
+	}
+}
+function showAllNode(nodes){
+	nodes = tree.transformToArray(nodes);
+	for(var i=nodes.length-1; i>=0; i--) {
+		if(nodes[i].getParentNode()!=null){
+			tree.expandNode(nodes[i],false,false,false,false);
+		}else{
+			tree.expandNode(nodes[i],true,true,false,false);
+		}
+		tree.showNode(nodes[i]);
+		showAllNode(nodes[i].children);
+	}
+}
+function updateNodes(nodeList) {
+	tree.showNodes(nodeList);
+	for(var i=0, l=nodeList.length; i<l; i++) {
+		var treeNode = nodeList[i];
+		showChildren(treeNode);
+		showParent(treeNode)
+	}
+}
+function showChildren(treeNode){
+	if (treeNode.isParent){
+		for(var idx in treeNode.children){
+			var node = treeNode.children[idx];
+			tree.showNode(node);
+			showChildren(node);
+		}
+	}
+}
+function showParent(treeNode){
+	var parentNode;
+	while((parentNode = treeNode.getParentNode()) != null){
+		tree.showNode(parentNode);
+		tree.expandNode(parentNode, true, false, false);
+		treeNode = parentNode;
+	}
+}
+function search($this) {
+	$('#search').slideToggle(200);
+	$('#btnShow').toggle();
+	$('#btnHide').toggle();
+	$('#keyword').focus();
+}
+</script>

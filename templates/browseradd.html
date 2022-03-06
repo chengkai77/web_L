@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>Browser Add</title>
+	<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>
+    <script>
+        $(document).ready(function(){
+            var connections = window.parent.getConnections();
+            $.ajax({
+                type:'POST',
+                url:'../before/',
+                dataType: 'json',
+                data:connections,
+                success:function(data){
+                    var rows = data.rows;
+                    var html = '';
+                    var max_length = 0;
+                    for (var i=0;i<rows.length;i++){
+                        var variant_name = rows[i].input_name;
+                        var div_id = rows[i].id;
+                        if (variant_name.indexOf(",") != -1){
+                        	variant_names = variant_name.split(",");
+                        	for (var j=0;j<variant_names.length;j++){
+                        		if (max_length <= variant_names[j].length){
+                        			max_length = variant_names[j].length
+                        		}else{
+                        		}
+                        	}
+                        	for (var j=0;j<variant_names.length;j++){
+                        		html = html + '<div class="layui-form-item"><label class="layui-form-label" style="width:'+ max_length*20 +'px;">' + variant_names[j].replace(/\"/g,"") + '</label><div class="layui-input-inline" style="margin-left:0px !important;"><input name="' + div_id.toString() + '" type="text" class="layui-input" value=' + "'\"" + "\"'" + 'style="width:150px;" + autocomplete="off"></div></div>';
+                        	}
+                        }else{
+                        	html = html + '<div class="layui-form-item"><label class="layui-form-label" style="width:' + variant_name.length*20  +'px;">' + variant_name.replace(/\"/g,"") + '</label><div class="layui-input-inline" style="margin-left:0px !important;"><input name="' + div_id.toString() + '" type="text" class="layui-input" value=' + "'\"" + "\"'" + ' style="width:150px;"  + autocomplete="off"></div></div>';
+                    	}
+                    }
+                    $("#browser").append(html);
+                }
+            });
+        })
+    </script>
+</head>
+<body>
+<form id="browser" class="layui-form layui-form-pane" action="">
+
+</form>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Organization Management" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa fa-fw icon-grid"></i> {% trans "Organization Management" %}
+			</div>
+			{% if 'Draw_Process.views_panel_organization_list_menu' in perms %}
+			<div class="box-tools pull-right">
+				{% if 'Draw_Process.views_panel_organization_list_menu_search' in perms %}<a href="#" class="btn btn-default" id="btnSearch"><i class="fa fa-filter"></i> {% trans "Search" %}</a>{% endif %}
+				{% if 'Draw_Process.views_panel_organization_list_menu_new_organization' in perms %}<a  class="btn btn-default" href="#" onclick="NewPage()"><i class="fa fa-plus"></i> {% trans "New Organization" %}</a>{% endif %}
+				<!--{% if 'Draw_Process.views_panel_organization_list_menu_excel' in perms %}-->
+				<!--<div class="btn-group">-->
+					<!--<a href="javascript:" class="btn btn-default dropdown-toggle" data-toggle="dropdown">-->
+						<!--<i class="fa fa-navicon"></i> <span class="caret"></span>-->
+					<!--</a>-->
+					<!--<ul class="dropdown-menu">-->
+						<!--{% if 'Draw_Process.views_panel_organization_list_menu_excel_template' in perms %}<li><a href="/exportusertemplate/" id="template"><i class="glyphicon glyphicon-file"></i> {% trans "Template" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_organization_list_menu_excel_import' in perms %}<li><a href="#" id="btnImport" onclick="upload()"><i class="glyphicon glyphicon-import"></i> {% trans "Import" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_organization_list_menu_excel_export' in perms %}<li><a href="/exportuserlist/" id="btnExport"><i class="glyphicon glyphicon-export"></i> {% trans "Export" %}</a></li>{% endif %}-->
+					<!--</ul>-->
+				<!--</div>-->
+				<!--{% endif %}-->
+			</div>
+			{% endif %}
+		</div>
+		<div class="box-body">
+			<form id="searchForm" action="/orgorglist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				{% if 'Draw_Process.views_panel_user_list_menu_search' in perms %}
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Organization" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="organization" name="organization" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				{% endif %}
+			</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if LANGUAGE_CODE == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:200, align:"center"},
+		{header:'{% trans "Create On" %}', name:'create_on', index:'create_on', width:200, align:"center"},
+		{header:'{% trans "Create By" %}', name:'create_by', index:'create_by', width:100, align:"center"},
+		{header:'{% trans "Comments" %}', name:'remarks', index:'remarks', width:200, align:"center", editable:true},
+		{header:'{% trans "Operation" %}', name:'actions', width:200, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var rowId = obj.irow;
+			var organization = row.organization;
+			var actions = [];
+				{% if 'Draw_Process.views_panel_organization_list_table_save' in perms %}
+				actions.push('<a href="javascript:saveEdit('+rowId+');" class="btnList" title="{% trans 'Save Remarks' %}" data-click-binded="true"><i class="fa fa-save"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_organization_list_table_inactive' in perms %}
+				if (row.status == "1"){
+					actions.push('<a href="javascript:changeStatus('+rowId+","+"'"+"{% trans 'Are you sure to inactive this organization' %}?"+"'"+');" class="btnList" title="{% trans 'Inactive Organization' %}" data-click-binded="true"><i class="glyphicon glyphicon-ban-circle"></i></a>&nbsp;');
+				}else{
+					actions.push('<a href="javascript:changeStatus('+rowId+","+"'"+"{% trans 'Are you sure to active this organization' %}?"+"'"+');" class="btnList" title="{% trans 'Active Organization' %}" data-click-binded="true"><i class="glyphicon glyphicon-ok-circle"></i></a>&nbsp;');
+				}
+				{% endif %}
+				{% if 'Draw_Process.views_panel_organization_list_table_delete' in perms %}
+				actions.push('<a href="#" onclick=deleteOrganization('+rowId+') class="btnList" title="{% trans 'Delete Organization' %}" data-click-binded="true"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				{% endif %}
+			return actions.join('');
+		}}
+	],
+	cellEdit: true,
+	cellsubmit: "clientArray",
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+	}
+});
+</script>
+<script>
+function saveEdit(rowId){
+	var rowData = $("#dataGrid").getRowData(rowId);
+	var organization = rowData['organization'];
+	var remarks = rowData['remarks'];
+	$.ajax({
+		type:'POST',
+		url:'../updateorganization/',
+		dataType:'json',
+		data:{"organization":organization,"remarks":remarks},
+		beforeSend:function(){
+			layer.load(1);
+		},
+		success:function(data){
+			layer.closeAll("loading");
+			var result = data.result;
+			if (result == 'success'){
+            	layer.msg("{% trans 'Update Successfully' %}!", {icon: 6});
+            }else{
+            	var message = data['msg'];
+                layer.msg(message, {icon: 5});
+            }
+		}
+	});
+}
+
+function changeStatus(rowId,title){
+	layer.confirm(title, {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Change Organization Status" %}',
+	}, function(){
+		var rowData = $("#dataGrid").getRowData(rowId);
+		var organization = rowData['organization'];
+		$.ajax({
+			type:'POST',
+			url:'../changeorganizationstatus/',
+			dataType:'json',
+			data:{"organization":organization},
+			beforeSend:function(){
+				layer.load(1);
+			},
+			success:function(data){
+				layer.closeAll("loading");
+				var result = data.result;
+				if (result == 'success'){
+					layer.msg('{% trans "Change status successfully" %}!', {icon: 6});
+				}else{
+					var message = data['msg'];
+					layer.msg(message, {icon: 5});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		});
+	})
+}
+
+function deleteOrganization(rowId){
+	layer.confirm('{% trans "Are you sure to delete this organization" %}?', {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Delete Organization" %}',
+	}, function(){
+		var rowData = $("#dataGrid").getRowData(rowId);
+		var organization = rowData['organization'];
+		$.ajax({
+			type:'POST',
+			url:'../deleteorganization/',
+			dataType:'json',
+			data:{"organization":organization},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll("loading");
+				var result = data['result'];
+				if (result == "success"){
+					layer.msg('{% trans "Delete Successfully" %}!', {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(result, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		})
+	})
+}
+function NewPage(){
+	window.location.href = "../organizationadd/";
+}
+</script>
+</html>

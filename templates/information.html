@@ -1,0 +1,377 @@
+﻿<html translate="no">
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<head>
+<meta charset="utf-8">
+<title>{% trans "Personnel Data" %}</title>
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<script src="../static/javascript/information/h5fix.min.js"></script>
+<script src="../static/javascript/getUrl.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css" />
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<link rel="stylesheet" href="../static/style/information/layer.css" id="layuicss-skinlayercss" />
+<link rel="stylesheet" href="../static/style/information/jquery.strength.css" />
+<link rel="stylesheet" href="../static/style/information/userInfo.css" />
+<script>
+  $(document).ready(function(){
+    var page = "{{ page }}";
+    if(page == "password"){
+       $("#tab-1").removeClass("active");
+       $("#tab-2").addClass("active");
+       $("#password").addClass("active");
+    }else{
+       $("#information").addClass("active");
+    }
+    var user = "{{ userID }}";
+    var nickname = "{{ user }}";
+    var email = "{{ email }}";
+    var ip = $.getUrlParam('ip');
+    var time = $.getUrlParam('lastLogin');
+    var mobile = "{{ mobile }}";
+    var phone = "{{ phone }}";
+    var url = "{{ url }}";
+    var taxpwd = "{{ taxpwd }}";
+    var fixed_ip = "{{ fixed_ip }}";
+    var sign = "{{ sign }}";
+    $("#nickname").text(nickname);
+    $("#userName").val(nickname);
+    $("#email").val(email);
+    $("#mobile").val(mobile);
+    $("#phone").val(phone);
+    $("#ip").val(fixed_ip);
+    $("#urladdress").val(url);
+    $("#taxpwd").val(taxpwd);
+    $("#sign").val(sign);
+    $("#last_logtime").text(time);
+    $("#last_logip").text(ip);
+    $("#userName").on("input",function(e){
+        var nickname = $("#userName").val();
+        $("#nickname").text(nickname);
+    });
+    var sex = "{{ sex }}";
+    if (sex == "2"){
+      $('#sex1').attr('checked',false);
+      $('#sex2').attr('checked',true);
+    }else{
+      $('#sex1').attr('checked',true);
+      $('#sex2').attr('checked',false);
+    }
+  })
+</script>
+<style>
+ .layui-layer-btn{
+    margin-top: -20px;
+ }
+</style>
+</head>
+ <body class="hold-transition ">
+  <div class="wrapper">
+   <div class="main-content">
+    <div class="nav-tabs-custom nav-main">
+     <ul class="nav nav-tabs pull-right">
+      <li id="password" class=""><a href="#tab-2" data-toggle="tab">{% trans "Change Password" %}</a></li>
+      <li id="information" class=""><a href="#tab-1" data-toggle="tab">{% trans "Personal Information" %}</a></li>
+      <li class="pull-left header"> <i class="fa fa-user-o" style="vertical-align:-1px;"></i>{% trans "Personal Center" %}</li>
+     </ul>
+     <div class="tab-content p0">
+      <div class="tab-pane active" id="tab-1">
+       <form id="inputFormBase" action="" method="post" class="form-horizontal" novalidate="novalidate">
+        <div class="box-body">
+         <br />
+         <div class="col-sm-offset-1 col-sm-3">
+          <br />
+          <div class="box box-main">
+           <div class="box-body box-profile">
+            <img id="avatarImg" class="profile-user-img img-responsive img-circle" src="{{ imageurl }}" />
+            <h3 id="nickname" class="profile-username text-center"></h3>
+            <p class="text-muted text-center" style="position: relative;">
+             <span id="sex" class="icheck">
+              <label class="">
+               <input type="radio" id="sex1" name="sex" value="1" class="form-control required" style="position: absolute; opacity: 0;" />
+               {% trans "Man" %}
+              </label>
+              <label class="">
+               <input type="radio" id="sex2" name="sex" value="2" class="form-control required" style="position: absolute; opacity: 0;" />
+               {% trans "Woman" %}
+              </label>
+             </span>
+            </p>
+            <input id="avatarBase64" name="avatarBase64" type="hidden" value="" class="" />
+            <a id="avatarBase64Button" href="javascript:" class="btn btn-default btn-block">{% trans "Change Image" %}</a>
+            <script>
+            $("#avatarBase64Button,#avatarImg").click(function(){
+                parent.layer.open({
+                    type: 2,
+                    maxmin: true,
+                    shadeClose: true,
+                    title: 'Image Clip',
+                    area: setpage(),
+                    content: '/imageclip/',
+                    contentFormData: {
+                        circle: 'true',
+                        imageSrc: $("#avatarImg").attr('src'),
+                        imageDefaultSrc: '../static/images/user/user1.jpg'
+                    },
+                    btn: ['<i class="fa fa-check"></i> {% trans "Confirm" %}',
+                        '<i class="fa fa-eraser"></i> {% trans "Clear" %}',
+                        '<i class="fa fa-close"></i> {% trans "Close" %}'],
+                    btn1: function(index, layero){
+                        var win = parent.window[layero.find('iframe')[0]['name']];
+                        win.$("#btnGetImageBase64").click();
+                        $("#avatarImg").attr("src", win.imageBase64);
+                        $("#avatarBase64").val(win.imageBase64).change();
+                        try { $('#avatarBase64').valid(); }catch(e){}
+                        parent.layer.close(index);
+                    },
+                    btn2: function(index, layero){
+                        $("#avatarImg").attr("src","../static/images/user/user1.jpg");
+                        $("#avatarBase64").val("EMPTY").change();
+                    }
+                });
+            });
+            function setpage() {
+                if ($(window).width() < 458) {
+                    return ['100%', '100%'];
+                } else {
+                    return ['70%', '70%'];
+                }
+            }
+            </script>
+           </div>
+          </div>
+         </div>
+         <div class="col-sm-7">
+          <br />
+          <div class="row">
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3"> <span class="required" aria-required="true">*</span> {% trans "Nick Name" %}:</label>
+             <div class="col-sm-9" style="position: relative;">
+              <div class="input-group" style="">
+               <input type="text" id="userName" name="userName" maxlength="32" class="form-control required" aria-required="true" aria-invalid="false" autocomplete="off" />
+               <span class="input-group-addon"><i class="fa fa-fw fa-user" style="margin-top:-2px;display:block;"></i></span>
+              </div>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3" title=""> <span class="required" aria-required="true">*</span> {% trans "Email" %}:<i class="fa icon-question hide"></i></label>
+             <div class="col-sm-9">
+              <div class="input-group">
+               <input type="text" id="email" name="email" maxlength="300" class="form-control required email" autocomplete="off" />
+               <span class="input-group-addon"><i class="fa fa-fw fa-envelope" style="margin-top:-2px;display:block;"></i></span>
+              </div>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3" title=""> <span class="required hide" aria-required="true">*</span> {% trans "Mobile" %}:<i class="fa icon-question hide"></i></label>
+             <div class="col-sm-9">
+              <div class="input-group">
+               <input type="text" id="mobile" name="mobile" maxlength="100" class="form-control" autocomplete="off" />
+               <span class="input-group-addon"><i class="fa fa-fw fa-mobile" style="margin-top:-2px;display:block;"></i></span>
+              </div>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3" title=""> <span class="required hide" aria-required="true">*</span> {% trans "Phone" %}:<i class="fa icon-question hide"></i></label>
+             <div class="col-sm-9">
+              <div class="input-group">
+               <input type="text" id="phone" name="phone" maxlength="100" class="form-control" autocomplete="off" />
+               <span class="input-group-addon"><i class="fa fa-fw fa-phone"></i></span>
+              </div>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3" title=""> <span class="required hide" aria-required="true">*</span> {% trans "IP" %}:<i class="fa icon-question hide"></i></label>
+             <div class="col-sm-9">
+              <div class="input-group">
+               <input type="text" id="ip" name="ip" maxlength="100" class="form-control" autocomplete="off" />
+               <span class="input-group-addon"><i class="fa fa-fw fa-location-arrow"></i></span>
+              </div>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3" title=""> <span class="required hide" aria-required="true">*</span> {% trans "Personal Sign" %}:<i class="fa icon-question hide"></i></label>
+             <div class="col-sm-9">
+              <textarea id="sign" name="sign" rows="3" maxlength="100" class="form-control "></textarea>
+             </div>
+            </div>
+           </div>
+           <div class="col-xs-12">
+            <div class="form-group">
+             <label class="control-label col-sm-3">{% trans "Last Login" %}:</label>
+             <div class="col-sm-9 pt3">
+              {% trans "Time" %}：<span id="last_logtime" name="last_logtime">2018-09-13 16:32</span> &nbsp; &nbsp; {% trans "IP" %}：<span id="last_logip" name="last_logip">10.180.21.54</span>
+             </div>
+            </div>
+           </div>
+          </div>
+          <br />
+         </div>
+        </div>
+        <div class="box-footer">
+         <div class="row mr20 pr20">
+          <div class="text-center mr20 pr20">
+           <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+           <button type="button" class="btn btn-sm btn-default" onclick="js.closeCurrentTabPage()"><i class="fa fa-reply-all"></i> {% trans "Close" %}</button>
+          </div>
+         </div>
+        </div>
+       </form>
+      </div>
+      <div class="tab-pane " id="tab-2">
+       <form id="inputFormPwd" action="" method="post" class="form-horizontal" novalidate="novalidate">
+        <div class="box-body">
+         <div class="form-unit">
+          {% trans "Change Password" %}
+         </div>
+         <div class="row">
+          <div class="col-xs-12">
+           <div class="form-group">
+            <label class="control-label col-sm-3">{% trans "Orginal Password" %}:</label>
+            <div class="col-sm-8">
+             <input id="oldPassword" name="oldPassword" type="password" autocomplete="off" value="" maxlength="50" minlength="8" class="form-control required" aria-required="true" />
+            </div>
+           </div>
+          </div>
+          <div class="col-xs-12">
+           <div class="form-group">
+            <label class="control-label col-sm-3">{% trans "New Password" %}:</label>
+            <div class="col-sm-8">
+             <div class="strength strength-loose">
+              <input id="newPassword" name="newPassword" type="password" autocomplete="off" value="" maxlength="50" minlength="8" class="form-control required strength_input" data-password="newPassword" aria-required="true" />
+              <input style="display:none" class="form-control required strength_input" noEqualTo="#oldPassword" data-password="newPassword" type="text" name="" value="" aria-required="true" />
+              <div class="strength_meter">
+               <div data-meter="newPassword">
+                <p></p>
+               </div>
+              </div>
+             </div>
+            </div>
+           </div>
+          </div>
+          <div class="col-xs-12">
+           <div class="form-group">
+            <label class="control-label col-sm-3">{% trans "Confirm New Password" %}:</label>
+            <div class="col-sm-8">
+             <input id="confirmNewPassword" name="confirmNewPassword" type="password" autocomplete="off" value="" maxlength="50" minlength="8" class="form-control required" equalto="#newPassword" aria-required="true" />
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="box-footer">
+         <div class="row">
+          <div class="col-sm-offset-3 col-sm-10">
+           <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+           <button type="button" class="btn btn-sm btn-default" onclick="js.closeCurrentTabPage()"><i class="fa fa-reply-all"></i> {% trans "Close" %}</button>
+          </div>
+         </div>
+        </div>
+       </form>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+  <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  <script src="../static/javascript/bootstrap.min.js"></script>
+  <script src="../static/javascript/information/select2.js"></script>
+  <script src="../static/javascript/information/select2.zh_CN.js"></script>
+  <script src="../static/javascript/layer/layer.js"></script>
+  <script src="../static/javascript/information/WdatePicker.js"></script>
+  <script src="../static/javascript/information/jquery.validate.js"></script>
+  <script src="../static/javascript/information/messages_zh_CN.js"></script>
+  <script src="../static/javascript/information/jquery.validate.extend.js"></script>
+  <script src="../static/javascript/information/jeesite.js"></script>
+  <script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+  <script src="../static/javascript/information/des.js"></script>
+  <script src="../static/javascript/information/jquery.strength.js"></script>
+  <script>
+  // 个人信息
+  $("#inputFormBase").validate({
+      submitHandler: function(form){
+          layer.load(1);
+          var userName = $('#userName').val();
+          var email = $('#email').val();
+          var mobile = $('#mobile').val();
+          var phone = $('#phone').val();
+          var url = $('#urladdress').val();
+          var ip = $('#ip').val();
+          var taxpwd = $('#taxpwd').val();
+          var sign = $('#sign').val();
+          var imageurl = document.getElementById("avatarImg").src;
+          var sex = $('input:radio[name="sex"]:checked').val();
+          $.ajax({
+              type:'POST',
+              url:'../updateuser/',
+              dataType:'json',
+              data:{"ip":ip,"userName":userName,"email":email,"mobile":mobile,"phone":phone,"url":url,"taxpwd":taxpwd,"sign":sign,"imageurl":imageurl,"sex":sex},
+              success:function(data){
+                  layer.closeAll('loading');
+                  var result = data.result;
+                  if (result == "success"){
+                      js.showMessage(data.message);
+                  }else{
+                      js.showErrorMessage(data.message);
+                  }
+              }
+          })
+      }
+  });
+  $('#sex input').on('ifCreated ifChecked', function(){
+      if ($(this).is(':checked')){
+          var s = $('#avatarImg').attr('src');
+          var o = "../static/images/user/user0.jpg";
+          var m = "../static/images/user/user1.jpg";
+          var w = "../static/images/user/user2.jpg";
+          var sex = $('input:radio[name="sex"]:checked').val();
+          if (s == o || s == m || s == w){
+              $('#avatarImg').attr('src', "../static/images/user/user"+sex+".jpg");
+          }
+      }
+  });
+  // 修改密码
+  $("#newPassword").strength();
+  $("#inputFormPwd").validate({
+      submitHandler: function(form){
+          layer.load(1);
+          var oldPassword = $('#oldPassword').val();
+          var	newPassword = $('#newPassword').val();
+          var	confirmNewPassword = $('#confirmNewPassword').val();
+          $.ajax({
+              type:'POST',
+              url:'../changepassword/',
+              dataType:'json',
+              data:{"oldPassword":oldPassword,"newPassword":newPassword},
+              success:function(data){
+                  layer.closeAll('loading');
+                  $('#oldPassword').val("");
+                  $('#newPassword').val("");
+                  $('#confirmNewPassword').val("");
+                  js.showMessage(data.message);
+              }
+          })
+      }
+  });
+  </script>
+ </body>
+</html>

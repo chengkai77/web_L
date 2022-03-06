@@ -1,0 +1,529 @@
+﻿<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="en" translate="no">
+<head>
+  <title>ChocLead</title>
+  <link href="../static/images/icon/favicon.ico" rel="shortcut icon">
+  <link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link href="../static/style/simple-line-icons/css/simple-line-icons.css" rel="stylesheet" type="text/css">
+  <link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+  <link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+  <style>
+    .layui-header{
+        background-color: #2b3643;
+        height: 50px;
+    }
+    .layui-layout-admin .layui-logo {
+        line-height: 50px;
+    }
+    .layui-nav .layui-nav-item {
+        line-height: 50px;
+    }
+    .layui-nav .layui-badge, .layui-nav .layui-badge-dot {
+        top: 30%;
+        margin: -8px 0px 0px -7px;
+        border-radius: 12px!important;
+    }
+    .message-alert {
+        background-color: #36c6d3;
+    }
+    .layui-nav-child {
+        top: 55px;
+    }
+    .divider {
+        background: #f1f3f6;
+        height: 1px;
+        margin: 9px 0;
+        overflow: hidden;
+    }
+    .layui-layout-admin .layui-footer {
+        left: 0px;
+        height: 30px;
+        line-height: 30px;
+        background-color: #eee;
+        text-align: center;
+    }
+    .layui-body {
+        left: 0px !important;
+        top: 50px !important;
+    }
+    .proccess{border:0px solid;border-color:#ffffff;height:100%;width:100%;background:#ffffff;margin:0;position:absolute;top:0;left:0;}
+    .label.label-icon {
+        padding: 4px 0 4px 4px;
+        margin-right: 5px;
+        text-align: center!important;
+    }
+    .label.label-sm {
+        font-size: 13px;
+        padding: 2px 5px;
+    }
+
+    .label-success {
+        background-color: #36c6d3;
+    }
+    .label-danger {
+        background-color: #ed6b75;
+    }
+    .label {
+        text-shadow: none!important;
+        font-size: 14px;
+        font-weight: 300;
+        padding: 3px 6px;
+        color: #fff;
+    }
+    .flow-span {
+        display:block;
+        overflow: hidden;
+        text-overflow:ellipsis;
+        white-space: nowrap;
+    }
+    .time {
+        float: right;
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 400;
+        opacity: .7;
+        filter: alpha(opacity=70);
+        text-align: right;
+        padding: 2px 18px 2px 5px;
+        color: #888;
+    }
+    .time2 {
+        float: right;
+        font-size: 12px;
+        font-weight: 400;
+        opacity: .5;
+        text-align: right;
+        display: inline-block;
+    }
+    .clock-font {
+        margin-left:5px;
+        font-size: 13px;
+        font-weight: 300;
+        line-height: 20px;
+    }
+    .server-font {
+        margin-left:5px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #5b9bd1;
+    }
+    .task {
+        margin-bottom: 5px;
+        color: #888;
+    }
+    .notification-dd {
+        border-bottom-color:rgb(239, 242, 246);
+        border-bottom-left-radius:0px;
+        border-bottom-right-radius:0px;
+        border-bottom-style:solid;
+        border-bottom-width:1px;
+    }
+    .task-item {
+        height:37px;
+        margin-bottom:0px;
+    }
+    .clock-item {
+        min-height:37px;
+        margin:5px 0px;
+    }
+    .notification-area {
+        background: #eaedf2;
+    }
+    .notification {
+        color: #62878f;
+        margin: 0 5px;
+        padding: 0;
+        float: left;
+        font-size: 13px;
+        display: inline-block;
+    }
+    .notification-all {
+        color: #337ab7;
+        margin: 0 5px;
+        padding: 0;
+        float: right;
+        font-size: 13px;
+        display: inline-block;
+    }
+    .hide {
+        display: none !important;
+    }
+    li [class*=" fa-"],li [class*=" glyphicon-"],li [class*=" icon-"],li [class^=fa-],li [class^=glyphicon-],li [class^=icon-] {
+        display: inline-block;
+        width: 0.75em;
+        text-align: center
+    }
+    .details {
+        white-space: normal;
+        color: rgb(136, 136, 136);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-weight: 300;
+    }
+    .desc {
+        font-size: 13px;
+        font-weight: 300;
+    }
+    .percent {
+        float: right;
+        font-weight: 600;
+        display: inline-block;
+        font-size: 13px;
+    }
+    .from {
+        font-size: 13px;
+        font-weight: 600;
+        color: #5b9bd1;
+    }
+    .task-dd {
+        color: #888;
+        display: block;
+        clear: both;
+        font-weight: 300;
+        line-height: 20px;
+        white-space: normal;
+        font-size: 13px;
+        padding: 5px 0px;
+        text-shadow: none;
+        border-bottom-color:rgb(239, 242, 246);
+        border-bottom-left-radius:0px;
+        border-bottom-right-radius:0px;
+        border-bottom-style:solid;
+        border-bottom-width:1px;
+    }
+  </style>
+</head>
+
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header" >
+    <div class="layui-logo"><img src="../static/images/icon/teclead.png" alt="logo"></div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:cancelAlert();">
+          <i class="icon-bell" style="font-size:17px;"></i>
+          <span id="notification" class="layui-badge message-alert">0</span>
+        </a>
+        <dl id="notification_list" class="layui-nav-child" style="width:200px;max-height:200px;overflow-y:auto;overflow-x:hidden;padding-bottom:0px;padding-top:0px;">
+        </dl>
+      </li>
+      <li class="layui-nav-item">
+        <a href="javascript:showAlert();">
+          <i class="icon-calendar" style="font-size:17px;"></i>
+          <span id="tasks" class="layui-badge message-alert">0</span>
+        </a>
+        <dl id="tasks_list" class="layui-nav-child" style="width:200px;max-height:200px;overflow-y:auto;overflow-x:hidden;padding-bottom:0px;padding-top:0px;">
+        </dl>
+      </li>
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="{{ imageurl }}" class="layui-nav-img">
+          {{ user }}
+        </a>
+        <dl class="layui-nav-child">
+          {% if 'Draw_Process.views_panel_user_list_page' in perms %}<dd><a href="javascript:openHtml('../orguser/','','','','{% trans 'User List' %}')"><i class="icon-user-follow"></i><span style="margin-left:5px;"> {% trans "User List" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_role_list_page' in perms %}<dd><a href="javascript:openHtml('../orgrole/','','','','{% trans 'Role List' %}')"><i class="icon-people"></i><span style="margin-left:5px;"> {% trans "Role List" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_organization_list_page' in perms %}<dd><a href="javascript:openHtml('../orgorganization/','','','','{% trans 'Organization List' %}')"><i class="fa fa-fw icon-grid"></i><span style="margin-left:5px;"> {% trans "Organization List" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_company_list_page' in perms %}<dd><a href="javascript:openHtml('../orgcompany/','','','','{% trans 'Company List' %}')"><i class="fa fa-fw icon-fire"></i><span style="margin-left:5px;"> {% trans "Company List" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_department_list_page' in perms %}<dd><a href="javascript:openHtml('../orgdepartment/','','','','{% trans 'Department List' %}')"><i class="fa fa-fw icon-trophy"></i><span style="margin-left:5px;"> {% trans "Department List" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_commander' in perms %}<dd><a href="javascript:openHtml('../commanderpage/','','','','{% trans 'Commander' %}')"><i class="icon-organization"></i><span style="margin-left:5px;"> {% trans "Commander" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_personal_data' in perms %}<dd><a href="javascript:openHtml('../updateinformation/','{{ lastIP }}','{{ lastLogin }}','information','{% trans 'Personal Data' %}')"><i class="icon-user"></i><span style="margin-left:5px;"> {% trans "Personal Data" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_change_password' in perms %}<dd><a href="javascript:openHtml('../updateinformation/','{{ lastIP }}','{{ lastLogin }}','password','{% trans 'Reset Password' %}')"><i class="icon-key"></i><span style="margin-left:5px;"> {% trans "Reset Password" %}</span></a></dd>{% endif %}
+          {% if 'local' in version %}
+          {% if 'Draw_Process.views_panel_renewal' in perms %}<dd><a href="javascript:renewal()"><i class="icon-paypal"></i><span style="margin-left:5px;"> {% trans "Renewal" %}</span></a></dd>{% endif %}
+          {% if 'Draw_Process.views_panel_licence' in perms %}<dd><a href="javascript:checkLicence()"><i class="icon-calendar"></i><span style="margin-left:5px;"> {% trans "Licence" %}</span></a></dd>{% endif %}
+          {% endif %}
+          <!--          <dd><a href="javascript:openHtml('../orgrole/','','','','Role List')"><i class="icon-screen-desktop"></i><span style="margin-left:5px;"> {% trans "Commander" %}</span></a></dd>-->
+          <dd class="divider"></dd>
+          <dd><a href="/logout/"><i class="icon-power"></i><span style="margin-left:5px;">{% trans "Log Off" %}</span></a></dd>
+        </dl>
+      </li>
+      <li class="layui-nav-item"><a href="/logout/">{% trans "Exit" %}</a></li>
+    </ul>
+  </div>
+
+  <div class="layui-body" style="overflow-x:hidden;overflow-y:hidden;">
+    <!-- 内容主体区域 -->
+    <div class="proccess" id="loading"><b></b></div>
+    <iframe frameborder="0" name="home" id="home" src="/welcome2" style="width:100%;height:100%;"></iframe>
+  </div>
+
+  <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    © 2020-2030 Teclead License
+  </div>
+</div>
+
+<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="../static/javascript/layer/layer.js"></script>
+<!--<script type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>-->
+<script type="text/javascript" src="../static/javascript/layer/layui.all.en.adj.js"></script>
+<script>
+function logout(){
+    window.location.href = "../logout/";
+}
+
+function cancelAlert(){
+    var index = layer.open({
+        type: 2,
+        title: '{% trans 'Finished Tasks' %}',
+        content: '../finishedschedule/',
+        area: ['320px', '195px'],
+        maxmin: true,
+    });
+    layer.full(index);
+}
+
+function showAlert(){
+    var index = layer.open({
+        type: 2,
+        title: '{% trans 'Booked Tasks' %}',
+        content: '../bookedschedule/',
+        area: ['320px', '195px'],
+        maxmin: true,
+    });
+    layer.full(index);
+}
+
+layer.load();
+//JavaScript代码区域
+layui.use('element', function(){
+  var element = layui.element;
+
+});
+var iframe = document.getElementById("home");
+if (iframe.attachEvent){
+    iframe.attachEvent("onload", function(){
+    layer.closeAll('loading');
+    document.getElementById("loading").style.display="none";
+    });
+} else {
+    iframe.onload = function(){
+    layer.closeAll('loading');
+    document.getElementById("loading").style.display="none";
+    };
+}
+$(document).ready(function(){
+    $("#tasks").next().hide();
+    $("#notification").next().hide();
+    var booked_tasks = {{ booked_tasks|safe }};
+    var finished_tasks = {{ finished_tasks|safe }};
+    $("#tasks").html(booked_tasks.length);
+    $("#notification").html(finished_tasks.length);
+    var update = "{{ update }}"
+    var html1 = "";
+    var html2 = "";
+    var task = $("#tasks_list");
+    var notification = $("#notification_list");
+    if (finished_tasks.length == 0){
+        $("#notification_list").addClass("hide");
+    }else{
+        notification.empty();
+        $("#notification_list").removeClass("hide");
+        for (var j=0;j<finished_tasks.length;j++){
+            var result = finished_tasks[j].result;
+            var label = "";
+            var id = finished_tasks[j].id;
+            if (result == "success"){
+                label = '<span class="label label-sm label-icon label-success"><i class="fa fa-plus"></i></span>'
+            }else{
+                label = '<span class="label label-sm label-icon label-danger"><i class="fa fa-bolt"></i></span>'
+            }
+            html2 = html2 + '<dd id="dd_' + id + '" class="notification-dd" onclick="cancelAlert()"><div class="layui-form-item clock-item"><a href="javascript:" style="width:180px;"><span class="details"><span class="time" title="'+finished_tasks[j].end_time2+'">'+finished_tasks[j].end_time1+'</span>'+label
+                    +'<span style="margin-left:5px;" title="'+finished_tasks[j].task_name+'">'+finished_tasks[j].task_name+'</span></span></a></div></dd>'
+        }
+        notification.append(html2);
+    };
+    if (booked_tasks.length == 0){
+        $("#tasks_list").addClass("hide");
+    }else{
+        task.empty();
+        $("#tasks_list").removeClass("hide");
+        for (var i=0;i<booked_tasks.length;i++){
+        html1 = html1 + '<dd class="task-dd" onclick="showAlert()"><a href="javascript:" style="display:inline-block;width:160px;">'
+                +'<span class="task"><span class="desc" title="'+booked_tasks[i].task_name+'">'+booked_tasks[i].task_name+'</span>'
+                +'<span class="percent" title="'+booked_tasks[i].duration+'">'+booked_tasks[i].duration+'</span></span><br>'
+                +'<span class="task"><span class="from" title="'+booked_tasks[i].pc_name+'">'+booked_tasks[i].pc_name+'</span>'
+                +'<span class="time2" title="'+booked_tasks[i].booked_time2+'">'+booked_tasks[i].booked_time+'</span></span></a></dd>'
+        }
+        task.append(html1);
+    };
+
+<!--    var lastTime = new Date().getTime();-->
+<!--    var currentTime = new Date().getTime();-->
+<!--    var timeOut = 180 * 60 * 1000; //设置超时时间： 3h-->
+
+<!--    $(function(){-->
+<!--        /* 鼠标移动事件 */-->
+<!--        $(document).mouseover(function(){-->
+<!--            lastTime = new Date().getTime(); //更新操作时间-->
+
+<!--        });-->
+<!--    });-->
+
+<!--    function testTime(){-->
+<!--        currentTime = new Date().getTime(); //更新当前时间-->
+<!--        if(currentTime - lastTime > timeOut){ //判断是否超时-->
+<!--            window.location.href = "../logout/";-->
+<!--        }-->
+<!--    }-->
+
+<!--    /* 定时器  间隔1秒检测是否长时间未操作页面  */-->
+<!--    window.setInterval(testTime, 1000);-->
+    })
+<!--    function test(){-->
+<!--        window.location.href = "../export/";-->
+<!--    }-->
+    function updateAlerts(){
+        $.ajax({
+            type:'POST',
+            url:'../getalerts/',
+            dataType:'json',
+            async : false,
+            data:{},
+            success:function(data){
+                var booked_tasks = data.booked_tasks;
+                var finished_tasks = data.finished_tasks;
+                $("#tasks").html(booked_tasks.length);
+                $("#notification").html(finished_tasks.length);
+                var html1 = "";
+                var html2 = "";
+                var task = $("#tasks_list");
+                var notification = $("#notification_list");
+                task.empty();
+                notification.empty();
+                if (finished_tasks.length == 0){
+                    $("#notification_list").addClass("hide");
+                }else{
+                    notification.empty();
+                    $("#notification_list").removeClass("hide");
+                    for (var j=0;j<finished_tasks.length;j++){
+                        var result = finished_tasks[j].result;
+                        var id = finished_tasks[j].id;
+                        var label = "";
+                        if (result == "success"){
+                            label = '<span class="label label-sm label-icon label-success"><i class="fa fa-plus"></i></span>'
+                        }else{
+                            label = '<span class="label label-sm label-icon label-danger"><i class="fa fa-bolt"></i></span>'
+                        }
+                        html2 = html2 + '<dd id="dd_' + id + '" class="notification-dd" onclick="cancelAlert()"><div class="layui-form-item clock-item"><a href="javascript:" style="width:180px;"><span class="details"><span class="time" title="'+finished_tasks[j].end_time2+'">'+finished_tasks[j].end_time1+'</span>'+label
+                                +'<span style="margin-left:5px;" title="'+finished_tasks[j].task_name+'">'+finished_tasks[j].task_name+'</span></span></a></div></dd>'
+                    }
+                    notification.append(html2);
+                };
+                if (booked_tasks.length == 0){
+                    $("#tasks_list").addClass("hide");
+                }else{
+                    task.empty();
+                    $("#tasks_list").removeClass("hide");
+                    for (var i=0;i<booked_tasks.length;i++){
+                    html1 = html1 + '<dd class="task-dd" onclick="showAlert()"><a href="javascript:" style="display:inline-block;width:160px;">'
+                            +'<span class="task"><span class="desc" title="'+booked_tasks[i].task_name+'">'+booked_tasks[i].task_name+'</span>'
+                            +'<span class="percent" title="'+booked_tasks[i].duration+'">'+booked_tasks[i].duration+'</span></span><br>'
+                            +'<span class="task"><span class="from" title="'+booked_tasks[i].pc_name+'">'+booked_tasks[i].pc_name+'</span>'
+                            +'<span class="time2" title="'+booked_tasks[i].booked_time2+'">'+booked_tasks[i].booked_time+'</span></span></a></dd>'
+                    }
+                    task.append(html1);
+                };
+                $("#update").val("");
+            }
+        })
+    }
+  function openHtml(url,lastIP,lastLogin,page,title){
+      var jump2url = "";
+      if (url == "../updateinformation/"){
+          jump2url = url + "?ip=" + lastIP + "&lastLogin=" + lastLogin + "&page=" + page;
+      }else{
+          jump2url = url;
+      }
+      var index = layer.open({
+          type: 2,
+          title: title,
+          content: jump2url,
+          area: ['320px', '195px'],
+          maxmin: true,
+      });
+      layer.full(index);
+  }
+
+  function renewal(){
+      layer.prompt({
+          formType: 2,
+          placeholder: '{% trans "Key" %}',
+          title: '{% trans 'Licence Input' %}',
+          btn: ['{% trans "Yes" %}', '{% trans "No" %}',],
+          yes: function(index, layero){
+              var value = layero.find(".layui-layer-input").val();
+              if(value==""){
+                  layer.tips('{% trans "Please input your key" %}', $('.layui-layer-input'));
+                  return;
+              }
+              var licence = $('#licence').val();
+              if (licence === "") {
+                  layer.tips('{% trans "Please input your licence" %}', $('#licence'));
+                  return;
+              }
+              $.ajax({
+                  type:'POST',
+                  url:'../updatelicence/',
+                  dataType:'json',
+                  data:{"key":value,"licence":licence},
+                  success:function(data){
+                      var result = data.result;
+                      if (result == "success"){
+                          layer.msg('{% trans "Renewal successfully" %}!', {
+                              time: 4000,
+                              icon: 6,
+                          });
+                      }else{
+                          var msg = data.message;
+                          layer.msg(msg, {
+                              time: 10000,
+                              icon: 5,
+                          });
+                      }
+                  }
+              })
+              layer.close(index);
+          }
+      });
+      $(".layui-layer-content").append("<br/><textarea id= \"licence\" class=\"layui-layer-input\" placeholder=\"{% trans 'Licence' %}\"</textarea>")
+  }
+
+  function checkLicence(){
+      $.ajax({
+          type: 'POST',
+          url: '../checklicence/',
+          dataType: 'json',
+          data: {},
+          success: function(data) {
+              var result = data.result;
+              if (result == "success") {
+                  var days = data.day;
+                  var msg = '{% trans "It is valid for " %}' + days + '{% trans " days" %}' + '!';
+                  layer.msg(msg, {
+                      time: 4000,
+                      icon: 6,
+                  });
+              } else {
+                  var msg = data.message;
+                  layer.msg(msg, {
+                      time: 10000,
+                      icon: 5,
+                  });
+              }
+          }
+      })
+  }
+</script>
+</body>
+</html>

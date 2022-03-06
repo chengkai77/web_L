@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Authorized Users" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-body">
+			<div class="box-header">
+				<div class="box-title">
+					<i class="fa icon-people"></i> {% trans "Authorized Users" %}
+				</div>
+				<div class="box-tools pull-right">
+					<a id="btnAddUser" class="btn btn-default" href="#" onclick="addUser()"><i class="fa fa-plus"></i> {% trans "Add User" %}</a>
+					<a id="btnDelUser" class="btn btn-default" href="#" onclick="cancelUsersAuth()"><i class="fa fa-remove"></i> {% trans "Batch Cancel" %}</a>
+					<a class="btn btn-default" href="#" onclick="javascript:history.back(-1);"><i class="fa fa-reply-all"></i> {% trans "Back" %}</a>
+				</div>
+			</div>
+			<form id="searchForm" action="/roleaccountlist/?roleCode={{roleCode}}" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				<div class="form-group">
+					<label class="control-label">{% trans "User" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="loginCode" name="loginCode" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Nick Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="userName" name="userName" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Email" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="email" name="email" value="" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+                <div class="form-group">
+					<label class="control-label">{% trans "Mobile" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="mobile" name="mobile" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Phone" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="phone" name="phone" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div></div>
+
+<div class="hide"><div class="input-group treeselect" id="userSelectDiv" data-url="/roleadduser/">
+	<input id="userSelectCode" type="hidden" name="" value="" class="isReset"/>
+	<input id="userSelectName" type="text" name="" value=""class="form-control  " readonly="readonly"/>
+	<span class="input-group-btn"><a id="userSelectButton" href="javascript:"
+		class="btn btn-default "><i class="fa fa-search"></i></a>
+	</span>
+</div></div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<!--<script src="../static/javascript/layer/layui.all.js"></script>-->
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "User" %}', name:'user', index:'user', width:120, align:"center", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="#" onclick="openUserEdit('+"'"+row.user+"'"+')" class="btnList" data-title="Edit User">'+(val||row.id)+'</a>';
+		}},
+		{header:'{% trans "User Code" %}', name:'userName', index:'userName', hidden:true},
+		{header:'{% trans "Nick Name" %}', name:'name', index:'name', width:200, align:"center"},
+		{header:'{% trans "Location" %}', name:'location', index:'location', width:200, align:"center"},
+		{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:200, align:"center"},
+		{header:'{% trans "Company" %}', name:'company', index:'company', width:200, align:"center"},
+		{header:'{% trans "Email" %}', name:'email', index:'email', width:200, align:"center"},
+		{header:'{% trans "Mobile" %}', name:'mobile', index:'mobile', width:200, align:"center"},
+		{header:'{% trans "Phone" %}', name:'phone', index:'phone', width:200, align:"center"},
+		{header:'{% trans "Update Date" %}', name:'updateDate', index:'updateDate', width:200, align:"center"},
+		{header:'{% trans "Status" %}', name:'status', index:'status', width:100, align:"center"},
+		{header:'{% trans "Operation" %}', name:'actions', width:120, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var userName = row.user;
+			var actions = [];
+				actions.push('<a href="javascript:void(0);" onclick=cancelUserAuth("'+userName+'") class="btnList" title="{% trans "Cancel the authorization" %}"><i class="fa fa-remove"></i></a>&nbsp;');
+			return actions.join('');
+		}}
+	],
+	showCheckbox: true,
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+	}
+});
+$("input[type='file']").change(function(){
+  var obj = document.getElementById("open");
+  var path = obj.files[0].name;
+  var data = {"path":path};
+  $("#open").val("");
+  $.ajax({
+    type:'POST',
+    url:'../uploaduser/',
+    dataType:'json',
+    data:data,
+    beforeSend:function(){
+    $('#loading').show();
+    },
+    success:function(data){
+    $('#loading').hide();
+    var msg = data.message;
+    var type = data.type;
+    if (type = "success"){
+    js.showMessage(msg);
+    }else{
+    js.showMessage(msg, null, 'warning');
+    }
+    }
+    });
+})
+function addUser(){
+	var boxWidth = $(top.window).width() - 100;
+	var boxHeight = $(top.window).height() - 100;
+	boxWidth = boxWidth < 350 ? 350:boxWidth;
+	boxHeight = boxHeight < 250 ? 250:boxHeight;
+	var selectData = {};
+	if(typeof listselectGetSelectData == 'function'){
+		selectData = listselectGetSelectData('userSelect');
+	}else{
+		var codes = $('#userSelectCode').val(), names = $('#userSelectName').val();
+		if(codes != null && codes != "" && names != null && names != ""){
+			var codesArr = codes.split(","), namesArr = names.split(",");
+			if (codesArr && namesArr && codesArr.length == namesArr.length){
+				for(var i=0; i<codesArr.length; i++) {
+					selectData[codesArr[i]] = {userCode: codesArr[i], userName: namesArr[i]}
+				}
+			}
+		}
+	}
+	var index = layer.open({
+                	type: 2,
+                    title: '{% trans "User Selection" %}',
+                    area: [boxWidth+'px', boxHeight+'px'],
+                    maxmin: true,
+                    btn: ['{% trans "Submit" %}','{% trans "Close" %}'],
+					btn1: function(index, layero){
+						var win = window[layero.find('iframe')[0]['name']];
+						selectData = win.getSelectData();
+						var userList = new Array;
+						for (let i in selectData){
+							var userCode = selectData[i].user;
+							userList.push(userCode);
+						}
+						var roleCode = "{{ roleCode }}";
+						var cover = win.$("#cover").val();
+						$.ajax({
+							type:'POST',
+							url:'../rolesaveuseradd/',
+							dataType:'json',
+							data:{"userList":userList,"roleCode":roleCode,"cover":cover},
+							beforeSend:function(){
+								layer.close(index);
+								layer.load(2);
+							},
+							success:function(data){
+								layer.closeAll('loading');
+								var status = data['status'];
+								var msg = data['msg'];
+								if (status == "success"){
+									layer.msg(msg, {
+                                    	time: 2000,
+                                        icon:6,
+                                    });
+                                }else{
+                                	layer.msg(msg, {
+                                    	time: 2000,
+                                        icon:5,
+                                    });
+                                }
+                                $("#dataGrid").trigger("reloadGrid");
+							}
+						})
+					},
+                    content: '../roleadduser/',
+                });
+}
+function cancelUserAuth(userName){
+	layer.confirm('{% trans "Are you sure to remove this user" %}?', {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Cancel Authorization" %}',
+	}, function(){
+		var roleCode = "{{ roleCode }}";
+	  	$.ajax({
+			type:'POST',
+			url:'../canceluserauthorization/',
+			dataType:'json',
+			data:{"userName":userName,"roleCode":roleCode},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				var msg = data['message'];
+				if (result == "success"){
+					layer.msg(msg, {
+                    	time: 2000,
+                        icon:6,
+                    });
+                }else{
+                	layer.msg(msg, {
+                    	time: 2000,
+                        icon:5,
+                    });
+                }
+                $("#dataGrid").trigger("reloadGrid");
+			}
+		})
+	});
+	return false;
+}
+function cancelUsersAuth(){
+	var rows = $("#dataGrid").dataGrid('getSelectRows');
+	if (rows != null && rows.length > 0){
+		layer.confirm('{% trans "Are you sure to remove selected users" %}?', {
+		btn: ['Yes','No'],
+		title: '{% trans "Cancel Authorization" %}',
+		}, function(){
+			var roleCode = "{{ roleCode }}";
+			var userNames = [];
+			for (var i=0;i<rows.length;i++){
+				var rowData = $("#dataGrid").jqGrid('getRowData', rows[i]);
+				userNames.push(rowData.userName);
+			}
+			$.ajax({
+				type:'POST',
+				url:'../cancelusersauthorization/',
+				dataType:'json',
+				data:{"userNames":userNames,"roleCode":roleCode},
+				beforeSend:function(){
+					layer.load(2);
+				},
+				success:function(data){
+					layer.closeAll('loading');
+					var result = data['result'];
+					var msg = data['message'];
+					if (result == "success"){
+						layer.msg(msg, {
+							time: 2000,
+							icon:6,
+						});
+					}else{
+						layer.msg(msg, {
+							time: 2000,
+							icon:5,
+						});
+					}
+					$("#dataGrid").trigger("reloadGrid");
+				}
+			})
+		});
+	}else{
+		layer.msg('{% trans "Please choose users to remove" %}!');
+	}
+	return false;
+}
+</script>
+</html>

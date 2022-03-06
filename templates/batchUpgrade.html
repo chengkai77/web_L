@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>{% trans "Release Process" %}</title>
+	<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+    <link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/javascript/layer/layer.js"></script>
+	<!--<script type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>-->
+    <script type="text/javascript" src="../static/javascript/layer/layui.all.en.js"></script>
+    <script>
+        function getSelection(){
+            var table = layui.table;
+            var checkStatus = table.checkStatus('ipTable');
+            data = checkStatus.data;
+            return data;
+        }
+    </script>
+</head>
+<body>
+    <div class="demoTable" style="margin:5px 5px;">
+        User Name
+        <div class="layui-inline" style="margin-right:15px;">
+            <input class="layui-input" name="user_name" id="user_name" autocomplete="off">
+        </div>
+        IP Address
+        <div class="layui-inline" style="margin-right:15px;">
+            <input class="layui-input" name="id_address" id="id_address" autocomplete="off">
+        </div>
+        <button class="layui-btn" data-type="reload">Search</button>
+    </div>
+
+    <table class="layui-hide" id="ip_table"></table>
+    <script>
+        layui.use('table', function(){
+          var table = layui.table;
+          var boxWidth = layui.$(top.window).width() - 100 - 80;
+          boxWidth = boxWidth < 350 ? 350:boxWidth;
+          var boxHeight = layui.$(top.window).height() - 200;
+          boxHeight = boxHeight < 250 ? 250:boxHeight;
+          var width1 = boxWidth/520 * 80;
+          var width2 = boxWidth/520 * 120;
+          //方法级渲染
+          table.render({
+            elem: '#ip_table'
+            ,url: '../selectip/'
+            ,cols: [[
+              {checkbox: true, fixed: true}
+              ,{field:'user_name', title: 'User Name', width:width1, sort: true}
+              ,{field:'nick_name', title: 'Nick Name', width:width1}
+              ,{field:'ip_address', title: 'IP Address', width:width2}
+              ,{field:'email', title: 'Email', width:width1}
+              ,{field:'organization', title:'Organization', sort: true, width:width1}
+              ,{field:'company', title: 'Company', sort: true, width:width1}
+            ]]
+            ,id: 'ipTable'
+            ,height: boxHeight
+            ,page: true
+            ,done: function(res, curr, count){
+                $(document).on("click",".layui-table-body table.layui-table tbody tr",function(){
+                    var index = $(this).attr('data-index');
+                    var tableBox = $(this).parents('.layui-table-box');
+                    //存在固定列
+                    if (tableBox.find(".layui-table-fixed.layui-table-fixed-l").length > 0) {
+                        tableDiv = tableBox.find(".layui-table-fixed.layui-table-fixed-l");
+                    } else {
+                        tableDiv = tableBox.find(".layui-table-body.layui-table-main");
+                    }
+                    var checkCell = tableDiv.find("tr[data-index=" + index + "]").find("td div.laytable-cell-checkbox div.layui-form-checkbox I");
+                    if (checkCell.length > 0) {
+                        checkCell.click();
+                    }
+                });
+                $(document).on("click","td div.laytable-cell-checkbox div.layui-form-checkbox",function(e){
+                    e.stopPropagation();
+                });
+            }
+          });
+
+          var $ = layui.$, active = {
+            reload: function(){
+              var user_name = $('#user_name');
+              var ip_address = $('#ip_address');
+
+              //执行重载
+              table.reload('ipTable', {
+                page: {
+                  curr: 1
+                }
+                ,where: {
+                  key: {
+                    user_name: user_name.val(),
+                    ip_address: ip_address.val()
+                  }
+                }
+              }, 'data');
+            }
+          };
+
+          $('.ip_table .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+          });
+        });
+    </script>
+</body>
+</html>

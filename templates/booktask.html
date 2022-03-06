@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>{% trans "Book Task" %}</title>
+	<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+    <link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+    <link href="../static/javascript/layer/default/laydate.css" rel="stylesheet">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/javascript/layer/layer.js"></script>
+    <script type="text/javascript" src="../static/javascript/layer/tree.js"></script>
+    {% if language == 'en' %}
+    <script type="text/javascript" src="../static/javascript/layer/layui.all.en.js"></script>
+    {% else %}
+    <script type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>
+    {% endif %}
+    <script>
+        var schedule_selection = {};
+        var task_method = "time";
+        Date.prototype.Format = function (fmt) {
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "H+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+        function refresh(){
+            var ip = "{{ip}}";
+            $("#selectTask").empty();
+            {% if show == "yes" %}$("#selectrobot").empty();{% endif %}
+            document.getElementById("selectTask").options.add(new Option('{% trans "Please Choose" %}',""));
+            $.ajax({
+                type:'POST',
+                url:'../tasklist/',
+                dataType: 'json',
+                data:{"ip":ip},
+                success:function(data){
+                    var tasks = data.task;
+                    for (var i=0;i<tasks.length;i++){
+                        var task_name = tasks[i]
+                        document.getElementById("selectTask").options.add(new Option(task_name,task_name));
+                    }
+                    layui.use('form', function(){
+                    var form = layui.form;
+                    form.render();
+                });
+                }
+            });
+            {% if show == "yes" %}
+            $.ajax({
+                type:'POST',
+                url:'../getrobotlist/',
+                dataType: 'json',
+                data:{"ip":ip},
+                success:function(data){
+                    var robots = data.robotlist;
+                    for (var i=0;i<robots.length;i++){
+                        var robot_name = robots[i]
+                        document.getElementById("selectrobot").options.add(new Option(robot_name,robot_name));
+                    }
+                    $("#selectrobot").val(ip);
+                    var form = layui.form;
+                    form.render('select');
+                }
+            });
+            {% endif %}
+        }
+        $(document).ready(function(){
+            refresh();
+        })
+        function checktitle(){
+            var title = $("#title").val();
+            $.ajax({
+                type:'POST',
+                url:'../checktitle/',
+                dataType:'json',
+                async : false,
+                data:{"title":title},
+                success:function(data){
+                    var result = data.result;
+                    if (result == "exist"){
+                        var message = data.msg;
+                        layer.tips(message,'#title',{tips:[1,'#ff6969']});
+                    }
+                    return false;
+                }
+            })
+        }
+        function cancel(){
+            var index = parent.layer.getFrameIndex(window.name);
+            parent.layer.close(index);
+        }
+        function deletetask(){
+            var task_id = $("#task_id").val();
+            if (task_id == "" || task_id == "null" || typeof(task_id) == "undefined"){
+                return false;
+            }else{
+                $.ajax({
+                    type:'POST',
+                    url:'../taskdelete/',
+                    dataType:'json',
+                    async : false,
+                    data:{"task_id":task_id},
+                    success:function(data){
+                        var message = data.msg;
+                        window.parent.parent.updateAlerts();
+                        layer.msg(message);
+                        $("#selected_path").val("");
+                        $("#selected_file").val("");
+                        $("#test-limit1").val("");
+                        $("#test-limit2").val("");
+                        $("#title").val("");
+                        $("#duration").val("");
+                        $("#release").val("");
+                        refresh();
+                    }
+                })
+            }
+        }
+    </script>
+    <style>
+    .demo-tree{margin: 10px 20px;}
+    .demo-tree-more{margin: 20px;}
+    .demo-tree-box{width: 200px; padding: 10px; border: 1px solid #ddd; overflow: auto;}
+    </style>
+</head>
+<body>
+<form class="layui-form layui-form-pane" action="">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+      <legend>{% trans "Select File" %}</legend>
+    </fieldset>
+    <div id="task_select" class="demo-tree-more"></div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="color:#c2c2c2;">{% trans "File Name" %}</label>
+        <div class="layui-input-block">
+            <input id="selected_file" type="text" class="layui-input" disabled>
+            <input id="selected_path" type="text" style="display:none;">
+        </div>
+    </div>
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+      <legend>{% trans "Book Task" %}</legend>
+    </fieldset>
+   <div class="layui-form-item">
+    <label class="layui-form-label">{% trans "Task Name" %}</label>
+    <div class="layui-input-block">
+      <input type="text" name="title" id="title" onBlur="checktitle()" autocomplete="off" lay-verify="required" placeholder="{% trans 'Please input the task name' %}" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-inline">
+        <label class="layui-form-label">{% trans "Duration" %}</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="duration" id="duration" lay-verify="required" placeholder="hh:mm:ss" autocomplete="off">
+        </div>
+    </div>
+  </div>
+  <div class="layui-form-item" pane>
+    <label class="layui-form-label">{% trans "Method" %}</label>
+    <div class="layui-input-block">
+      <input type="radio" name="method" value="time" title="{% trans 'Time' %}" checked lay-filter="method">
+      <input type="radio" name="method" value="sequence" title="{% trans 'Sequence' %}" lay-filter="method">
+      <input type="radio" name="method" value="cycle" title="{% trans 'Cycle' %}" lay-filter="method">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-inline">
+        <label id="dayLabel" class="layui-form-label">{% trans "Day" %}</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="test-limit1" id="test-limit1" lay-verify="required" placeholder="yyyy-mm-dd" autocomplete="off">
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label id="timeLabel" class="layui-form-label">{% trans "Time" %}</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="test-limit2" id="test-limit2" lay-verify="required" placeholder="hh:mm:ss" autocomplete="off">
+        </div>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-inline">
+        <label id="taskChooseLabel" class="layui-form-label" style="color:#c2c2c2;">{% trans "Task" %}</label>
+        <div class="layui-input-inline">
+            <select id="selectTask" name="quiz1" lay-filter="task" disabled>
+                <option value="">{% trans "Please Choose" %}</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label id="taskSequenceLabel" class="layui-form-label" style="color:#c2c2c2;">{% trans "Sequence" %}</label>
+        <div class="layui-input-inline">
+            <select id="taskSequence" name="quiz2" disabled>
+                <option value="after">{% trans "After" %}</option>
+                <option value="before">{% trans "Before" %}</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-inline">
+        <label class="layui-form-label" style="color:#c2c2c2;">{% trans "Release By" %}</label>
+        <div class="layui-input-inline">
+            <input id="release" type="text" class="layui-input" disabled>
+        </div>
+    </div>
+  </div>
+
+  {% if show == "yes" %}
+  <div class="layui-form-item">
+    <div class="layui-inline">
+        <label id="rootbtChooseLabel" class="layui-form-label">{% trans "Robot" %}</label>
+        <div class="layui-input-inline">
+            <select id="selectrobot" name="quiz3" lay-filter="task" >
+                <option value="">{% trans "Please Choose" %}</option>
+            </select>
+        </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="layui-form-item" pane>
+    <label class="layui-form-label">{% trans "Notification" %}</label>
+    <div class="layui-input-block">
+      <input type="radio" name="notification" value="yes" title="{% trans 'Yes' %}" checked lay-filter="notification">
+      <input type="radio" name="notification" value="no" title="{% trans 'No' %}" lay-filter="notification">
+    </div>
+  </div>
+
+  <input id="task_id" style="display:none;">
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button type="submit" class="layui-btn" lay-submit lay-filter="task">{% trans "Submit" %}</button>
+      <button type="button" class="layui-btn layui-btn-primary" onclick="cancel()">{% trans "Cancel" %}</button>
+      <button type="button" class="layui-btn layui-btn-danger" onclick="deletetask()">{% trans "Delete" %}</button>
+    </div>
+  </div>
+</form>
+<script>
+	layui.use('form', function(){
+		var form = layui.form;
+		form.on('submit(task)', function(data){
+            var path = $("#selected_path").val();
+            var filename = $("#selected_file").val();
+            if (filename == "" || filename == null || typeof(filename) == "undefined"){
+                layer.msg('{% trans "Please choose one process at first!" %}');
+                return false;
+            }
+            var robotname =$("select[name=quiz3").val();
+            if (typeof(robotname) == "undefined"){
+                robotname = "";
+            }
+            var day = data['field']['test-limit1'];
+            var hour = data['field']['test-limit2'];
+            var method = data['field']['method'];
+            var notification = data['field']['notification'];
+            var title = data['field']['title'];
+            var task = data['field']['quiz1'];
+            if (method == "sequence"){
+                if (task == "" || task == null || typeof(task) == "undefined"){
+                    layer.msg('{% trans "Please choose the task!" %}');
+                    return false;
+                }
+            }
+            var sequence = data['field']['quiz2'];
+            var duration = data['field']['duration'];
+            var ip = "{{ip}}";
+            var fixed_ip = "{{fixed_ip}}";
+            if (ip == "server"){
+                $.ajax({
+                    type:'POST',
+                    url:'../runtask/',
+                    dataType:'json',
+                    async : false,
+                    data:{"ip":ip,"fixed_ip":fixed_ip,"path":path,"filename":filename,"day":day,"hour":hour,"title":title,"task":task,"sequence":sequence,"duration":duration,"method":method,"notification":notification},
+                    success:function(data){
+                        var result = data.result;
+                        if (result == "success"){
+                            layer.msg('{% trans "Booked Successfully!" %}');
+                            window.parent.parent.updateAlerts();
+                        }else if(result == "exist"){
+                            var message = data.msg;
+                            layer.tips(message,'#title',{tips:[1,'#ff6969']});
+                            return false;
+                        }else{
+                            var message = data.msg;
+                            layer.msg(message);
+                        }
+                        $("#selected_path").val("");
+                        $("#selected_file").val("");
+                        $("#test-limit1").val("");
+                        $("#test-limit2").val("");
+                        $("#title").val("");
+                        $("#duration").val("");
+                        $("#release").val("");
+                        refresh();
+                    }
+                })
+            }else{
+
+                var username = "{{username}}";
+                schedule_selection["username"] = username;
+                schedule_selection["ip"] = ip;
+                schedule_selection["fixed_ip"] = fixed_ip;
+                schedule_selection["path"] = path;
+                schedule_selection["day"] = day;
+                schedule_selection["hour"] = hour;
+                schedule_selection["title"] = title;
+                schedule_selection["task"] = task;
+                schedule_selection["sequence"] = sequence;
+                schedule_selection["duration"] = duration;
+                schedule_selection["method"] = method;
+                schedule_selection["notification"] = notification;
+                schedule_selection["robotname"] = robotname;
+                $.ajax({
+                    url: '../getbookedtask/',
+                    type:'post',
+                    dataType: 'json',
+                    data: schedule_selection,
+                    success: function(data){
+                        schedule_selection = {};
+                        var result = data.result;
+                        if (result == "success"){
+                            robot_status = data.robot_status;
+                            if (robot_status == ""){
+                                layer.msg('{% trans "Booked Successfully!" %}');
+                            }else if(robot_status == 1){
+                                layer.msg('{% trans "Booked Successfully!" %}' + " " + '{% trans "This robot is offline!" %}', {icon: 5});
+                            }else if(robot_status == 3){
+                                layer.msg('{% trans "Booked Successfully!" %}' + " " + '{% trans "This robot is busy!" %}', {icon: 5});
+                            }else{
+                                layer.msg('{% trans "Booked Successfully!" %}');
+                            }
+                            window.parent.parent.updateAlerts();
+                        }else if(result == "exist"){
+                            var message = data.msg;
+                            layer.tips(message,'#title',{tips:[1,'#ff6969']});
+                            return false;
+                        }else{
+                            layer.msg('{% trans "Booked Failed!" %}');
+                        }
+                        $("#selected_path").val("");
+                        $("#selected_file").val("");
+                        $("#test-limit1").val("");
+                        $("#test-limit2").val("");
+                        $("#title").val("");
+                        $("#duration").val("");
+                        $("#release").val("");
+                        refresh();
+                    }
+                })
+            }
+            return false;
+        })
+        form.on('submit(cancel)', function(data){
+            return false;
+        })
+        form.on('select(task)', function (data) {
+            var message=$("select[name=quiz1").val();
+            $.ajax({
+                type:'POST',
+                url:'../taskcreateor/',
+                dataType:'json',
+                async : false,
+                data:{"task":message},
+                success:function(data){
+                    var task_id = data['task_id'];
+                    $("#task_id").val(task_id);
+                    var createor = data['createor'];
+                    var booked_day = data['booked_day'];
+                    var booked_hour = data['booked_hour'];
+                    $("#release").val(createor);
+                    $("#test-limit1").val(booked_day);
+                    $("#test-limit2").val(booked_hour);
+                }
+            })
+        })
+        form.on('radio(method)', function (data) {
+            var method = data['value'];
+            if (method == "time"){
+                task_method = "time";
+                $("#test-limit1").attr("lay-verify", 'required');
+                $("#test-limit2").attr("lay-verify", 'required');
+                $("#test-limit1").removeAttr("disabled");
+                $("#test-limit2").removeAttr("disabled");
+                $("#dayLabel").removeAttr("style");
+                $("#timeLabel").removeAttr("style");
+                $("#selectTask").attr("disabled", '');
+                $("#taskSequence").attr("disabled", '');
+                $("#taskChooseLabel").css("color","#c2c2c2");
+                $("#taskSequenceLabel").css("color","#c2c2c2");
+                form.render();
+            }else if(method == "sequence"){
+                task_method = "sequence";
+                $("#test-limit1").attr("lay-verify", '');
+                $("#test-limit2").attr("lay-verify", '');
+                $("#selectTask").removeAttr("disabled");
+                $("#taskSequence").removeAttr("disabled");
+                $("#taskChooseLabel").removeAttr("style");
+                $("#taskSequenceLabel").removeAttr("style");
+                $("#test-limit1").attr("disabled", '');
+                $("#test-limit2").attr("disabled", '');
+                $("#dayLabel").css("color","#c2c2c2");
+                $("#timeLabel").css("color","#c2c2c2");
+                form.render();
+            }else if(method == "cycle"){
+                var filename = $("#selected_file").val();
+                if (filename == "" || filename == null || typeof(filename) == "undefined"){
+                    layer.tips('{% trans "Please choose one process at first!" %}','#title',{tips:[1,'#ff6969']});
+                    $("input[name='method'][value='"+task_method+"']").prop("checked", "checked");
+                    form.render();
+                    return false;
+                }
+                var duration = $("#duration").val();
+                if (duration == ""){
+                    layer.tips('{% trans "Please choose duration time!" %}','#duration',{tips:[1,'#ff6969']});
+                    $("input[name='method'][value='"+task_method+"']").prop("checked", "checked");
+                    form.render();
+                    return false;
+                }
+                var starttime = $("#test-limit2").val();
+                if (starttime == ""){
+                    layer.tips('{% trans "Please choose start time!" %}','#test-limit2',{tips:[1,'#ff6969']});
+                    $("input[name='method'][value='"+task_method+"']").prop("checked", "checked");
+                    form.render();
+                    return false;
+                }
+                $("#test-limit1").attr("lay-verify", '');
+                $("#test-limit2").attr("lay-verify", 'required');
+                $("#test-limit1").removeAttr("disabled");
+                $("#test-limit2").removeAttr("disabled");
+                $("#dayLabel").removeAttr("style");
+                $("#timeLabel").removeAttr("style");
+                $("#selectTask").attr("disabled", '');
+                $("#taskSequence").attr("disabled", '');
+                $("#taskChooseLabel").css("color","#c2c2c2");
+                $("#taskSequenceLabel").css("color","#c2c2c2");
+                var robotname =$("select[name=quiz3").val();
+                if (typeof(robotname) == "undefined"){
+                    robotname = "";
+                }
+                var index = layer.open({
+                    type: 2,
+                    title: false,
+                    closeBtn: false,
+                    skin: 'layui-layer-lan',
+                    //加上边框
+                    area: ['500px', '450px'],
+                    //宽高
+                    maxmin: false,
+                    content: '../schedulecyclehtml',
+                    btn: ['{% trans "Submit" %}', '{% trans "Cancel" %}'],
+                    btn1: function(index, layero) {
+                        var iframeWin = window[layero.find('iframe')[0]['name']];
+                        schedule_selection = iframeWin.getSelection();
+                        layer.close(index);
+                    },
+                });
+                layer.full(index);
+            }
+        })
+		form.render();
+	});
+	var current_day = new Date().Format("yyyy-MM-dd");
+
+	{% if language == 'en' %}
+	layui.use('laydate', function(){
+	    var laydate = layui.laydate;
+	    var day_selection = laydate.render({
+            elem: '#test-limit1'
+            ,lang: 'en'
+            ,trigger: 'click'
+            ,min: current_day
+            ,max: '2080-10-14'
+            ,done: function(value, date){
+                if (value == current_day){
+                    var hour_seleced = second_selection.config.dateTime.hours;
+                    var minute_seleced = second_selection.config.dateTime.minutes;
+                    var date = new Date();
+                    var min = date.getMinutes();
+                    date.setMinutes(min+1);
+                    if (hour_seleced < date.getHours()){
+                        second_selection.config.dateTime.hours = 0;
+                        second_selection.config.dateTime.minutes = 0;
+                        second_selection.config.dateTime.seconds = 0;
+                    }
+                    second_selection.config.min = {
+                        year: date.getFullYear(),
+                        month: date.getMonth(),
+                        date: date.getDate(),
+                        hours: date.getHours(),
+                        minutes: date.getMinutes(),
+                        seconds: '00'
+                    };
+                }else{
+                    second_selection.config.min = {
+                        hours: '00',
+                        minutes: '00'
+                    };
+                }
+            }
+        });
+        var second_selection = laydate.render({
+            elem: '#test-limit2'
+            ,lang: 'en'
+            ,type: 'time'
+            ,trigger: 'click'
+            ,min: '00:00:00'
+            ,max: '23:59:59'
+            ,btns: ['clear', 'confirm']
+            ,ready: function(value){
+                var ip = "{{ip}}";
+                var robotname =$("select[name=quiz3").val();
+                var day = $("#test-limit1").val();
+                var param = {"ip":ip,"day":day,"robotname":robotname};
+                $.ajax({
+                    type:'POST',
+                    url:'../houroption/',
+                    dataType:'json',
+                    async : false,
+                    data: param,
+                    success:function(data){
+                        var hour_list = data.hour_list;
+                        for(var i=0;i<hour_list.length;i++){
+                            var n = hour_list[i];
+                            var hour_li = $(".laydate-time-list")[0].children[0].children[1].children[n];
+                            hour_li.className = "laydate-disabled";
+                        }
+                    }
+                })
+            }
+            ,change: function(value){
+                var ip = "{{ip}}";
+                var day = $("#test-limit1").val();
+                var h = value.split(":")[0];
+                var hour1 = h + ":00:00";
+                var hour2 = h + ":59:00";
+                 var robotname =$("select[name=quiz3").val();
+                var param = {"ip":ip,"day":day,"hour1":hour1,"hour2":hour2,"robotname":robotname};
+                if (h != "00" && h != "0"){
+                    $.ajax({
+                        type:'POST',
+                        url:'../minuteoption/',
+                        dataType:'json',
+                        async : false,
+                        data: param,
+                        success:function(data){
+                            var min_list = data.min_list;
+                            for(var i=0;i<60;i++){
+                                var min_li = $(".laydate-time-list")[0].children[1].children[1].children[i];
+                                if(min_list.indexOf(i) != -1){
+                                    var className = min_li.className;
+                                    if (className.indexOf("layui-this") != -1){
+                                        min_li.className = "layui-this";
+                                    }else{
+                                        min_li.className = "";
+                                    }
+                                }else{
+                                    min_li.className = "laydate-disabled";
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+        });
+        var last_selection = laydate.render({
+            elem: '#duration'
+            ,lang: 'en'
+            ,type: 'time'
+            ,trigger: 'click'
+            ,min: '00:00:00'
+            ,max: '23:59:59'
+            ,btns: ['clear', 'confirm']
+        });
+	});
+    {% else %}
+    layui.use('laydate', function(){
+	    var laydate = layui.laydate;
+	    var day_selection = laydate.render({
+            elem: '#test-limit1'
+            ,trigger: 'click'
+            ,min: current_day
+            ,max: '2080-10-14'
+            ,done: function(value, date){
+                if (value == current_day){
+                    var hour_seleced = second_selection.config.dateTime.hours;
+                    var minute_seleced = second_selection.config.dateTime.minutes;
+                    var date = new Date();
+                    var min = date.getMinutes();
+                    date.setMinutes(min+1);
+                    if (hour_seleced < date.getHours()){
+                        second_selection.config.dateTime.hours = 0;
+                        second_selection.config.dateTime.minutes = 0;
+                        second_selection.config.dateTime.seconds = 0;
+                    }
+                    second_selection.config.min = {
+                        year: date.getFullYear(),
+                        month: date.getMonth(),
+                        date: date.getDate(),
+                        hours: date.getHours(),
+                        minutes: date.getMinutes(),
+                        seconds: '00'
+                    };
+                }else{
+                    second_selection.config.min = {
+                        hours: '00',
+                        minutes: '00'
+                    };
+                }
+            }
+        });
+        var second_selection = laydate.render({
+            elem: '#test-limit2'
+            ,type: 'time'
+            ,trigger: 'click'
+            ,min: '00:00:00'
+            ,max: '23:59:59'
+            ,btns: ['clear', 'confirm']
+            ,ready: function(value){
+                var ip = "{{ip}}";
+                var day = $("#test-limit1").val();
+                var robotname =$("select[name=quiz3").val();
+                var param = {"ip":ip,"day":day,"robotname":robotname};
+                $.ajax({
+                    type:'POST',
+                    url:'../houroption/',
+                    dataType:'json',
+                    async : false,
+                    data: param,
+                    success:function(data){
+                        var hour_list = data.hour_list;
+                        for(var i=0;i<hour_list.length;i++){
+                            var n = hour_list[i];
+                            var hour_li = $(".laydate-time-list")[0].children[0].children[1].children[n];
+                            hour_li.className = "laydate-disabled";
+                        }
+                    }
+                })
+            }
+            ,change: function(value){
+                var ip = "{{ip}}";
+                var day = $("#test-limit1").val();
+                var h = value.split(":")[0];
+                var hour1 = h + ":00:00";
+                var hour2 = h + ":59:00";
+                 var robotname =$("select[name=quiz3").val();
+                var param = {"ip":ip,"day":day,"hour1":hour1,"hour2":hour2,"robotname":robotname};
+                if (h != "00" && h != "0"){
+                    $.ajax({
+                        type:'POST',
+                        url:'../minuteoption/',
+                        dataType:'json',
+                        async : false,
+                        data: param,
+                        success:function(data){
+                            var min_list = data.min_list;
+                            for(var i=0;i<60;i++){
+                                var min_li = $(".laydate-time-list")[0].children[1].children[1].children[i];
+                                if(min_list.indexOf(i) != -1){
+                                    var className = min_li.className;
+                                    if (className.indexOf("layui-this") != -1){
+                                        min_li.className = "layui-this";
+                                    }else{
+                                        min_li.className = "";
+                                    }
+                                }else{
+                                    min_li.className = "laydate-disabled";
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+        });
+        var last_selection = laydate.render({
+            elem: '#duration'
+            ,type: 'time'
+            ,trigger: 'click'
+            ,min: '00:00:00'
+            ,max: '23:59:59'
+            ,btns: ['clear', 'confirm']
+        });
+	});
+    {% endif %}
+
+	layui.use(['tree', 'util'], function(){
+	    $.ajax({
+            type:'POST',
+            url:'../datalist2/',
+            dataType:'json',
+            async : false,
+            data:{},
+            success:function(data){
+                var data_list = data.rows;
+                var tree = layui.tree
+                ,layer = layui.layer
+                ,util = layui.util
+                tree.render({
+                    elem: '#task_select'
+                    ,id: 'tree1'
+                    ,data: data_list
+                    ,showLine: true
+                    ,spread: false
+                    ,click: function(obj){
+                        var selected_data = obj.data;
+                        var path = selected_data['path'];
+                        var title = selected_data['title'];
+                        if (path.indexOf(".py") == -1){
+                            return false;
+                        }else{
+                            $("#selected_file").val(title);
+                            $("#selected_path").val(path);
+                            tree.reload('tree1', {
+                            });
+                        }
+                    },
+                });
+            }
+        })
+    });
+    function disabled_date(value,chosenDate){
+        var test = value;
+    }
+</script>
+</body>
+</html>

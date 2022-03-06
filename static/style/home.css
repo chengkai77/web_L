@@ -1,0 +1,219 @@
+/* 公共样式表css */
+html,body {
+    color: #333;
+    margin: 0;
+    height: 100%;
+    font-family: "Myriad Set Pro","Helvetica Neue",Helvetica,Arial,Verdana,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: normal;
+}
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: #000;
+}
+
+img {
+    border: 0;
+}
+
+body {
+    background: #fff;
+    color: #666;
+}
+
+html, body, div, dl, dt, dd, ol, ul, li, h1, h2, h3, h4, h5, h6, p, blockquote, pre, button, fieldset, form, input, legend, textarea, th, td {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    text-decoration: none;
+    color: #08acee;
+}
+
+button {
+    outline: 0;
+}
+
+img {
+    border: 0;
+}
+
+button,input,optgroup,select,textarea {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    outline: none;
+}
+
+li {
+    list-style: none;
+}
+
+a {
+    color: #666;
+}
+
+a:hover {
+    color: #eee;
+}
+
+.clearfix::after {
+    clear: both;
+    content: ".";
+    display: block;
+    height: 0;
+    visibility: hidden;
+}
+
+.clearfix {
+}
+
+/* 必要布局样式css */
+
+.step-content{
+    background: #f6f6f6;
+    padding-top: 50px;
+    padding-bottom: 100px;
+}
+
+.step-grid{
+    width: 1000px;
+    margin: 0 auto;
+}
+
+.step-box{
+    width:991px;
+}
+
+.step-title{
+    font-family: "Microsoft YaHei", tahoma, arial, "Hiragino Sans GB", 宋体;
+    color: rgb(47, 147, 216);
+    font-size: 34px;
+    text-align: center!important;
+
+}
+
+.step-row{
+    position: relative;
+}
+
+.step-row-point{
+    font-size: 14px;
+    color: #666;
+    background: -40px 0 no-repeat;
+    width: 12px;
+    height: 12px;
+    position: absolute;
+}
+
+.step-row-top{
+    top: -3px;
+    left: -5px;
+}
+.step-row-left{
+    background: top left repeat-y;
+    padding-left: 55px;
+    padding-right: 30px;
+}
+
+.step-row li{
+    font-size: 14px;
+    color: #666;
+}
+
+.step-text-fl{
+    display: inline;
+    float: left!important;
+    width: 550px;
+    font-size: 14px;
+    color: #666;
+    margin-top: 30px;
+}
+
+.step-text-fl h4{
+    font-size: 26px;
+    color: #333;
+    font-weight: 500;
+}
+
+.step-text-fl p{
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.step-text-fr{
+    width: 343px;
+    z-index: 100;
+    position: relative;
+    float: right!important;
+    text-align: right!important;
+    display: inline;
+}
+
+.step-text-fr img{
+    z-index: 100;
+}
+
+.step-row-bottom{
+    background: no-repeat;
+    width: 991px;
+    height: 60px;
+    z-index: 1;
+}
+
+.step-row-right{
+    background: top right repeat-y;
+    padding-right: 44px;
+    padding-left: 30px;
+}
+
+.step-text-fl-fr{
+    width: 343px;
+    z-index: 100;
+    position: relative;
+    text-align: left!important;
+    float: left!important;
+    display: inline;
+}
+
+.step-text-fr-fr{
+    width: 550px;
+    font-size: 14px;
+    color: #666;
+    float: right!important;
+    display: inline;
+}
+
+.step-text-fr-fr h4{
+    font-size: 26px;
+    color: #333;
+    font-weight: 500;
+}
+
+.step-text-fr-fr p{
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+}
+d
+.step-row-bottom-one{
+    background: no-repeat;
+    width: 991px;
+    height: 60px;
+}
+
+.step-row-bot{
+    bottom: -3px;
+    left: -5px;
+    top: inherit;
+}

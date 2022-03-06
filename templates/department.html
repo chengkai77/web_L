@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Department Management" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa fa-fw icon-grid"></i> {% trans "Department Management" %}
+			</div>
+			{% if 'Draw_Process.views_panel_department_list_menu' in perms %}
+			<div class="box-tools pull-right">
+				{% if 'Draw_Process.views_panel_department_list_menu_search' in perms %}<a href="#" class="btn btn-default" id="btnSearch"><i class="fa fa-filter"></i> {% trans "Search" %}</a>{% endif %}
+				{% if 'Draw_Process.views_panel_department_list_menu_new_department' in perms %}<a href="#" class="btn btn-default" onclick="NewPage()"><i class="fa fa-plus"></i> {% trans "New Department" %}</a>{% endif %}
+				<!--{% if 'Draw_Process.views_panel_department_list_menu_excel' in perms %}-->
+				<!--<div class="btn-group">-->
+					<!--<a href="javascript:" class="btn btn-default dropdown-toggle" data-toggle="dropdown">-->
+						<!--<i class="fa fa-navicon"></i> <span class="caret"></span>-->
+					<!--</a>-->
+					<!--<ul class="dropdown-menu">-->
+						<!--{% if 'Draw_Process.views_panel_department_list_menu_excel_template' in perms %}<li><a href="#" id="template"><i class="glyphicon glyphicon-file"></i> {% trans "Template" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_department_list_menu_excel_import' in perms %}<li><a href="#" id="btnImport"><i class="glyphicon glyphicon-import"></i> {% trans "Import" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_department_list_menu_excel_export' in perms %}<li><a href="#" id="btnExport"><i class="glyphicon glyphicon-export"></i> {% trans "Export" %}</a></li>{% endif %}-->
+					<!--</ul>-->
+				<!--</div>-->
+				<!--{% endif %}-->
+			</div>
+			{% endif %}
+		</div>
+		<div class="box-body">
+			<form id="searchForm" action="/deplist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				{% if 'Draw_Process.views_panel_department_list_menu_search' in perms %}
+				<div class="form-group">
+					<label class="control-label">{% trans "Organization" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="organization" name="organization" value="{{ organization }}" maxlength="300" class="form-control width-120" autocomplete="off"/>
+						{% if organizationReadonly == "readonly" %}
+							<script>
+								document.getElementById("organization").readOnly = true;
+							</script>
+						{% endif %}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Company" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="company" name="company" value="{{  company }}" maxlength="300" class="form-control width-120" autocomplete="off"/>
+						{% if companyReadonly == "readonly" %}
+							<script>
+								document.getElementById("company").readOnly = true;
+							</script>
+						{% endif %}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Department Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="departmentName" name="departmentName" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				{% endif %}
+			</form>
+			<table id="dataGrid"></table>
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "Department" %}', name:'departmentName', index:'departmentName', width:200, align:"center", frozen:true, formatter: function(val, obj, row, act){
+			return '( '+row.departmentCode+' ) ' + val||row.id;
+		}},
+		{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:200, align:"center"},
+		{header:'{% trans "Company" %}', name:'company', index:'company', width:200, align:"center"},
+		{header:'{% trans "Full Name" %}', name:'fullName', index:'fullName', width:200, align:"center"},
+		{header:'{% trans "Sort" %}', name:'treeSort', index:'treeSort', width:100, align:"center"},
+		{header:'{% trans "Create On" %}', name:'createOn', index:'createOn', width:200, align:"center"},
+		{header:'{% trans "Create By" %}', name:'createBy', index:'createBy', width:100, align:"center"},
+		{header:'{% trans "Comments" %}', name:'remarks', index:'remarks', width:200, align:"center", editable:true},
+		{header:'{% trans "Operation" %}', name:'actions', width:200, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var rowId = obj.rowId;
+			var actions = [];
+				{% if 'Draw_Process.views_panel_department_list_table_save' in perms %}
+				actions.push('<a href="javascript:saveEdit('+rowId+');" class="btnList" title="{% trans 'Save Remarks' %}" data-click-binded="true"><i class="fa fa-save"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_department_list_table_inactive' in perms %}
+				if (row.status == "1"){
+					actions.push('<a href="javascript:changeStatus('+rowId+","+"'"+"{% trans 'Are you sure to inactive this department' %}?"+"'"+');" class="btnList" title="{% trans 'Inactive Department' %}" data-click-binded="true"><i class="glyphicon glyphicon-ban-circle"></i></a>&nbsp;');
+				}else{
+					actions.push('<a href="javascript:changeStatus('+rowId+","+"'"+"{% trans 'Are you sure to active this department' %}?"+"'"+');" class="btnList" title="{% trans 'Active Department' %}" data-click-binded="true"><i class="glyphicon glyphicon-ok-circle"></i></a>&nbsp;');
+				}
+				{% endif %}
+				{% if 'Draw_Process.views_panel_department_list_table_delete' in perms %}
+				actions.push('<a href="javascript:deleteDepartment('+rowId+');" class="btnList" title="{% trans 'Delete Department' %}" data-click-binded="true"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_department_list_table_new_suboridinate_department' in perms %}
+				actions.push('<a href="../departmentadd/?upperDepartment='+row.departmentName+'&upperDepartmentCode='+row.departmentCode+'" class="btnList" title="{% trans 'New Subordinate Department' %}" data-click-binded="true"><i class="fa fa-plus-square"></i></a>&nbsp;');
+				{% endif %}
+			return actions.join('');
+		}}
+	],
+	cellEdit: true,
+	cellsubmit: "clientArray",
+	treeGrid: true,
+	defaultExpandLevel: 0,
+	treeGridModel: "adjacency",
+	expandNodeClearPostData: 'departmentName',
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+	}
+});
+</script>
+<script>
+function saveEdit(rowId){
+	var rowData = $("#dataGrid").getRowData(rowId);
+	var remarks = rowData['remarks'];
+	$.ajax({
+		type:'POST',
+		url:'../updatedepartment/',
+		dataType:'json',
+		data:{"departmentCode":rowId,"remarks":remarks},
+		beforeSend:function(){
+			layer.load(1);
+		},
+		success:function(data){
+			layer.closeAll('loading');
+			var result = data.result;
+			if (result == 'success'){
+            	layer.msg('{% trans 'Update Successfully' %}!', {icon: 6});
+            }else{
+            	var message = data['msg'];
+                layer.msg(message, {icon: 5});
+            }
+		}
+	});
+}
+
+function changeStatus(rowId,title){
+	layer.confirm(title, {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Change Department Status" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../changedepartmentstatus/',
+			dataType:'json',
+			data:{"departmentCode":rowId},
+			beforeSend:function(){
+				layer.load(1);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data.result;
+				if (result == 'success'){
+					layer.msg('{% trans "Change status successfully" %}!', {icon: 6});
+				}else{
+					var message = data['msg'];
+					layer.msg(message, {icon: 5});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		});
+	})
+}
+
+function deleteDepartment(rowId){
+	layer.confirm('{% trans "Are you sure to delete this department and the subordinate departments" %}?', {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Delete Department" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../deletedepartment/',
+			dataType:'json',
+			data:{"departmentCode":rowId},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				if (result == "success"){
+					layer.msg('{% trans "Delete Successfully" %}!', {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(result, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		})
+	})
+}
+function NewPage(){
+	window.location.href = "../departmentadd/";
+}
+</script>
+</html>

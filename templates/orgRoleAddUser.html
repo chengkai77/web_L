@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "User Selection" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-body">
+			<form id="searchForm" action="/roleaddaccountlist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				<input type="hidden" id="userType" name="userType" value="employee"/>
+				<div class="form-group">
+					<label class="control-label">{% trans "User" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="loginCode" name="loginCode" value="" maxlength="100" class="form-control width-90"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Nick Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="userName" name="userName" value="" maxlength="100" class="form-control width-90"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Email" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="email" name="email" value="" maxlength="300" class="form-control width-90"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Mobile" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="mobile" name="mobile" value="" maxlength="100" class="form-control width-90"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Phone" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="phone" name="phone" value="" maxlength="100" class="form-control width-90"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label">{% trans "Cover" %}:</label>
+					<div class="control-inline width-60">
+						<select id="cover" name="cover" class="form-control ">
+							<option value="1">{% trans "No" %}</option>
+							<option value="0">{% trans "Yes" %}</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Search" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+			</form>
+			<div class="row">
+				<div class="col-xs-10 pr10">
+					<table id="dataGrid"></table>
+					<div id="dataGridPage"></div>
+				</div>
+				<div class="col-xs-2 pl0">
+					<div id="selectData" class="tags-input"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<!--<script src="../static/javascript/layer/layui.all.js"></script>-->
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+var selectData = JSON.parse(js.decodeUrl('%7B%7D')), selectNum = 0,
+dataGrid = $('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "User" %}', name:'user', index:'user', width:200, align:"center"},
+		{header:'{% trans "Nick Name" %}', name:'name', index:'name', width:200, align:"center"},
+		{header:'{% trans "Email" %}', name:'email', index:'email', width:200, align:"center"},
+		{header:'{% trans "Mobile" %}', name:'mobile', index:'mobile', width:200, align:"center"},
+		{header:'{% trans "Phone" %}', name:'phone', index:'phone', width:200, align:"center"},
+		{header:'{% trans "Update Date" %}', name:'updateDate', index:'updateDate', width:200, align:"center"},
+		{header:'{% trans "Status" %}', name:'status', index:'status', width:100, align:"center"},
+		{header:'{% trans "Row Data" %}', name:'rowData', hidden:true, formatter: function(val, obj, row, act){
+			return JSON.stringify(row);
+		}}
+	],
+	autoGridHeight: function(){
+		var height = $(window).height() - $('#searchForm').height() - $('#dataGridPage').height() - 73;
+		$('.tags-input').height($('.ui-jqgrid').height() - 10);
+		return height;
+	},
+	showCheckbox: true,
+	multiboxonly: false, // 单击复选框时再多选
+	ajaxSuccess: function(data){
+		$.each(selectData, function(key, value){
+			dataGrid.dataGrid('setSelectRow', key);
+		});
+		initSelectTag();
+	},
+	onSelectRow: function(id, isSelect, event){
+		if (true){
+			if(isSelect){
+				selectData[id] = JSON.parse(dataGrid.dataGrid('getRowData', id).rowData);
+			}else{
+				delete selectData[id];
+			}
+		}else{
+			selectData = {};
+			selectData[id] = JSON.parse(dataGrid.dataGrid('getRowData', id).rowData);
+		}
+		initSelectTag();
+	},
+	onSelectAll: function(ids, isSelect){
+		if (true){
+			for (var i=0; i<ids.length; i++){
+				if(isSelect){
+					selectData[ids[i]] = JSON.parse(dataGrid.dataGrid('getRowData', ids[i]).rowData);
+				}else{
+					delete selectData[ids[i]];
+				}
+			}
+		}
+		initSelectTag();
+	},
+	ondblClickRow: function(id, rownum, colnum, event){
+		if (false){
+			js.layer.$('#' + window.name).closest('.layui-layer')
+				.find(".layui-layer-btn0").trigger("click");
+		}
+		initSelectTag();
+	}
+});
+function initSelectTag(){
+	selectNum = 0;
+	var html = [];
+	$.each(selectData, function(key, value){
+		selectNum ++;
+		html.push('<span class="tag" id="'+key+'_tags-input"><span>'+value.name+' </span>'
+			+ '<a href="#" onclick="removeSelectTag(\''+key+'\');" title="Deselect">x</a></span>');
+	});
+	html.unshift('<div class="title">{% trans "You have chosen" %} <span id="selectNum">'+selectNum+'</span> {% trans "items" %}:</div>');
+	$('#selectData').empty().append(html.join(''));
+}
+function removeSelectTag(key){
+	delete selectData[key];
+	dataGrid.dataGrid('resetSelection', key);
+	$('#selectNum').html(--selectNum);
+	$('#'+key+'_tags-input').remove();
+}
+function getSelectData(){
+	return selectData;
+}
+</script>
+</html>

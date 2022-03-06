@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+<meta charset="utf-8" />
+<title>{% trans "Role Management" %}</title>
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/zTreeStyle.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css" />
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css" />
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+</head>
+<body class="hold-transition ">
+  <input id="selectUrl" style="display:none;" />
+  <div class="wrapper">
+   <div class="main-content">
+    <div class="box box-main">
+     <div class="box-header with-border">
+      <div class="box-title">
+       <i class="fa icon-people"></i> {% trans "New Role" %}
+      </div>
+      <div class="box-tools pull-right">
+       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+      </div>
+     </div>
+     <form id="inputForm" action="" method="post" class="form-horizontal">
+      <div class="box-body">
+       <div class="form-unit">
+        {% trans "Basic Information" %}
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Organization" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            {% if readonly != "readonly" %}<div class="input-group treeselect" id="officeNameDiv" data-url="/organizationselect/">{% endif %}
+            <input id="officeName" type="text" name="officeName" value="{{ organization }}" class="form-control required " autocomplete="off" />
+            {% if readonly != "readonly" %}<span class="input-group-btn"><a id="officeNameButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a></span></div>{% endif %}
+           <script>
+           {% if readonly == "readonly" %}
+           document.getElementById("officeName").readOnly = true;
+           {% else %}
+           $("#officeNameButton,#officeName").click(function(){
+               $("#selectUrl").val($('#officeNameDiv').attr('data-url'));
+               if ($("#officeNameButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Organization Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       $("#officeName").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           {% endif %}
+           </script>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Role Code" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            <input id="roleCode" type="text" name="roleCode" value="" maxlength="64" class="form-control required " autocomplete="off" />
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Role Name" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            <input id="roleName" type="text" name="roleName" value="" maxlength="200" class="form-control required " autocomplete="off" />
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Sort" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <input type="text" id="sort" name="sort" value="" maxlength="10" class="form-control required" autocomplete="off" />
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "User Type" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <select id="userType" name="userType" class="form-control ">
+            <option value="">&nbsp;</option>
+            <option value="employee">{% trans "Employee" %}</option>
+            <option value="member">{% trans "Member" %}</option>
+            <option value="btype">{% trans "Btype" %}</option>
+            <option value="person">{% trans "Person" %}</option>
+            <option value="expert">{% trans "Expert" %}</option>
+           </select>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required">*</span> {% trans "System User" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <span id="isSys" class="icheck">
+             <label><input type="radio" id="isSys1" name="isSys" value="1" class="form-control required "> {% trans "Yes" %}</label>
+             <label><input type="radio" id="isSys2" name="isSys" value="0" class="form-control required "> {% trans "No" %}</label>
+           </span>
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required hide">*</span> {% trans "Role Type" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+           <select id="roleType" name="roleType" class="form-control ">
+            <option value="">&nbsp;</option>
+            <option value="1">{% trans "Manager" %}</option>
+            <option value="2">{% trans "Middle-level" %}</option>
+            <option value="3">{% trans "Basic-level" %}</option>
+            <option value="4">{% trans "Others" %}</option>
+           </select>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="row">
+        <div class="col-xs-12">
+         <div class="form-group">
+          <label class="control-label col-sm-2" title=""> <span class="required hide">*</span> {% trans "Remarks" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-10">
+            <textarea id="remarks" name="remarks" rows="4" value="" maxlength="500" class="form-control"></textarea>
+          </div>
+         </div>
+        </div>
+       </div>
+       <div class="form-unit">
+        {% trans "Permission" %}
+       </div>
+       <div id="dataScopeTrees"></div>
+        <input type="hidden" id="userDataScopeListJson" name="userDataScopeListJson" value=""/>
+      </div>
+      <div class="box-footer">
+       <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
+         <button type="submit" class="btn btn-sm btn-primary" id="btnSubmit"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+         <button type="button" class="btn btn-sm btn-default" id="btnCancel" onclick="javascript:history.back(-1);"><i class="fa fa-reply-all"></i> {% trans "Back" %}</button>
+        </div>
+       </div>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+<script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/jquery.ztree.all-3.5.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jquery.validate.js"></script>
+<script src="../static/javascript/information/jquery.validate.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+<script src="../static/javascript/information/messages_zh_CN.js"></script>
+{% endif %}
+<script>
+$("#inputForm").validate({
+	submitHandler: function(form){
+		layer.load(1);
+		var organization = $('#officeName').val();
+		var roleCode = $('#roleCode').val();
+		var roleName = $('#roleName').val();
+		var sort = $('#sort').val();
+		var userType = $('#userType').val();
+		var isSys = $("input[name='isSys']:checked").val();
+		var roleType = $('#roleType').val();
+		var remarks = $('#remarks').val();
+        var trees = document.getElementsByClassName("ztree");
+        var json = {"organization":organization,"roleCode":roleCode,"roleName":roleName,"sort":sort,"userType":userType,"isSys":isSys,"roleType":roleType,"remarks":remarks};
+        for (i=0;i<trees.length;i++){
+        var treeID = trees[i].id;
+        var treeObj=$.fn.zTree.getZTreeObj(treeID);
+        nodes=treeObj.getCheckedNodes(true);
+        var nodes_list = new Array();
+        for(var j=0;j<nodes.length;j++){
+          if(treeID=="dataScopeTree_Commander"){
+            var perm = nodes[j].perm;
+            if (perm.indexOf("views_commander_") != -1){
+              nodes_list.push(nodes[j].perm);
+            }
+          }else{
+            nodes_list[j] = nodes[j].perm;
+          }
+        };
+          if(treeID=="dataScopeTree_Function"){
+            json.function = nodes_list;
+          }else if(treeID=="dataScopeTree_Menu"){
+            json.menu = nodes_list;
+          }else if(treeID=="dataScopeTree_Panel"){
+            json.panel = nodes_list;
+          }else if(treeID=="dataScopeTree_Folder"){
+            json.folder = nodes_list;
+          }else if(treeID=="dataScopeTree_Commander"){
+            json.commander = nodes_list;
+          }
+        }
+		$.ajax({
+         type:'POST',
+         url:'../createrole/',
+         dataType:'json',
+         data:json,
+         success:function(data){
+          layer.closeAll('loading');
+          var result = data['result'];
+          var msg = data['message'];
+          if (result == "success"){
+            layer.msg(msg, {
+              time: 1000,
+              icon:6,
+            });
+          }else{
+            layer.msg(msg, {
+              time: 1000,
+              icon:5,
+            });
+          }
+         }
+		 })
+    }
+});
+//加载数据权限树结构
+var setting = {
+	check:{enable:true,nocheckInherit:true},
+	view:{selectedMulti:false,nameIsHTML: true},
+	data:{simpleData:{enable:true},key:{title:"title"}},
+	callback:{
+		beforeClick: function (treeId, treeNode, clickFlag) {
+			var tree = $.fn.zTree.getZTreeObj(treeId);
+			tree.checkNode(treeNode, !treeNode.checked, true, true);
+			return false;
+		},
+		onCheck: function (event, treeId, treeNode){
+			var tid = treeNode.tId;
+			if(!treeNode.checked){
+				$(".checkall[value="+treeId+"]").each(function(){
+					if(this.checked){
+					    $(this).removeAttr("checked").iCheck('update');
+					}
+					return false;
+				});
+			}
+		},
+	}
+},
+moduleCodes = '["core","devtools"]';
+var loginCode = "{{ loginCode }}";
+dataScopes = [
+{
+  moduleCode: "core",
+  ctrlName: '{% trans "Commander Permission" %}',
+  ctrlName_en: "Commander",
+  ctrlType: "Commander",
+  ctrlPermi: "0",
+  ctrlDataUrl: "/editrolecommanderauth/?roleCode="+roleCode,
+  chkboxType: {"Y":"ps","N":"ps"},
+  expandLevel: -1,
+  remarks: ""
+},{
+  moduleCode: "core",
+  ctrlName: "{% trans 'Folder Permission' %}",
+  ctrlName_en: "Folder",
+  ctrlType: "Folder",
+  ctrlPermi: "0",
+  ctrlDataUrl: "/editrolefolderauth/?roleCode="+roleCode,
+  chkboxType: {"Y":"ps","N":"ps"},
+  expandLevel: -1,
+  remarks: ""
+},{
+  moduleCode: "core",
+  ctrlName: "{% trans 'Panel Permission' %}",
+  ctrlName_en: "Panel",
+  ctrlType: "Panel",
+  ctrlPermi: "0",
+  ctrlDataUrl: "/edituserpanelauth/?user="+loginCode,
+  chkboxType: {"Y":"ps","N":"ps"},
+  expandLevel: -1,
+  remarks: ""
+},{moduleCode: "core",
+  ctrlName: "{% trans 'Menu Permission' %}",
+  ctrlName_en: "Menu",
+  ctrlType: "Menu",
+  ctrlPermi: "0",
+  ctrlDataUrl: "/editusermenuauth/?user="+loginCode,
+  chkboxType: {"Y":"ps","N":"ps"},
+  expandLevel: -1,
+  remarks: ""
+},{ moduleCode: "core",
+  ctrlPermi: "0",
+  ctrlName: "{% trans 'Function Permission' %}",
+  ctrlName_en: "Function",
+  ctrlType: "Function",
+  ctrlDataUrl: "/edituserfunctionauth/?user="+loginCode,
+  chkboxType: {"Y":"ps","N":"ps"},
+  expandLevel: -1,
+  remarks: ""
+}],
+dataScopeTrees = {}; // 用sysCode分类存储所有菜单树
+for (var i=0; i<dataScopes.length; i++){
+	var dataScope = dataScopes[i];
+	var ctrlName_en = dataScope.ctrlName_en;
+	// 验证模块是否开启，如果未开启，则跳过
+	if (moduleCodes.indexOf("\""+dataScope.moduleCode+"\"") == -1){
+		continue;
+	}
+	// 控制权限 ctrlPermi: 0全部  1拥有权限  2管理权限
+	if (!(dataScope.ctrlPermi == '0'
+			|| dataScope.ctrlPermi == '2')){
+		continue;
+	}
+	var infor = '';
+	var key = dataScope.ctrlType;
+	var label = dataScope.ctrlName_zh_CN || dataScope.ctrlName;
+	infor += '<div id=\"treeList_'+i+'\" class=\"pull-left\" style=\"padding:0 15px;min-width:300px;\">';
+	infor += '<div class=\"box box-solid\" style=\"background:#FAFAFA\">';
+	infor += '<div class=\"box-header\"><div class=\"box-title icheck\"><label><input type=\"checkbox\" id=\"checkall_'+key+'\" class=\"checkall\"/>'+label+'</label></div>';
+ 	infor += '<div class=\"box-tools pull-right\" style=\"top:8px;\"><a class=\"btn btn-box-tool\" id=\"expand_'+key+'" value="dataScopeTree_'+key+'" >{% trans "Unfold" %}</a>/<a class="btn btn-box-tool" id="collapse_'+key+'" value="dataScopeTree_'+key+'" >{% trans "Fold" %}</a></div>';
+ 	infor += '</div><div class=\"box-body\"><div id=\"dataScopeTree_'+key+'\" class=\"ztree\"></div></div></div></div>';
+ 	var treeList = $("#dataScopeTrees");
+ 	treeList.after(infor);
+ 	var ctrlDataUrl = dataScope.ctrlDataUrl || '';
+	$.ajax({
+		type: 'POST',
+		url: ctrlDataUrl + (ctrlDataUrl.indexOf("?")!=-1?'&':'?') + "___t=" + new Date().getTime(),
+		data: {ctrlPermi: '2',ctrlName_en,ctrlName_en},
+		dataType: 'json',
+		async: false,
+		error: function(data){
+			js.showErrorMessage(data.responseText);
+		},
+		success: function(data, status, xhr){
+			// 初始化树结构
+			var perms = data.perms;
+			var data = data.list;
+			var tree = $.fn.zTree.init($("#dataScopeTree_"+dataScope.ctrlType), setting, data);
+			tree.setting.check.chkboxType = dataScope.chkboxType;
+			// 默认展开节点（如果级别设置为-1，则：如果有1个根节点，则展开一级节点，否则不展开）
+			$.fn.zTree.expandNodeByLevel(tree, dataScope.expandLevel);
+			// 树结构：全选、取消全选
+			$('#checkall_'+dataScope.ctrlType).iCheck({
+		 		checkboxClass:'icheckbox_minimal-grey'
+		 	}).on('ifChecked ifUnchecked', function(){
+	        	var ctrlType = $(this).attr('ctrlType');
+				if(this.checked){
+					dataScopeTrees[ctrlType].checkAllNodes(true);
+				}else{
+					dataScopeTrees[ctrlType].checkAllNodes(false);
+				}
+			}).attr("ctrlType", dataScope.ctrlType);
+			// 展开和折叠按钮绑定
+			$('#expand_'+dataScope.ctrlType).click(function(){
+				var ctrlType = $(this).attr('ctrlType');
+				dataScopeTrees[ctrlType].expandAll(true);
+			}).attr("ctrlType", dataScope.ctrlType);
+			$('#collapse_'+dataScope.ctrlType).click(function(){
+				var ctrlType = $(this).attr('ctrlType');
+				dataScopeTrees[ctrlType].expandAll(false);
+			}).attr("ctrlType", dataScope.ctrlType);
+			// 将树对象存储到全局数组里
+			dataScopeTrees[dataScope.ctrlType] = tree;
+			//默认选中用户权限
+        	var treeID = "dataScopeTree_" + ctrlName_en;
+        	var treeObj=$.fn.zTree.getZTreeObj(treeID);
+        	node= treeObj.getNodes();
+        	nodes=treeObj.transformToArray(node);
+        	for(var i=0;i<nodes.length;i++){
+               permission = nodes[i].perm;
+               index = $.inArray(permission,perms);
+               if (index >= 0){
+                  treeObj.checkNode(nodes[i],true,true);
+               }
+        	}
+		}
+	});
+};
+</script>
+</body>
+</html>

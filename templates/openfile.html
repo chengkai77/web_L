@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>Files</title>
+	<link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="../static/style/EasyUI/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../static/style/EasyUI/icon.css">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+	<script src="../static/javascript/layer/layer.js"></script>
+	<script type="text/javascript" src="../static/javascript/EasyUI/jquery.easyui.min.js"></script>
+    <script>
+    	function lay_tips(msg,id){
+    		layer.tips(msg, id, {tips: 3});
+    	}
+    	function clear(){
+    		$("#text").val("");
+			var textboxs = $(".textbox-value");
+			$("#_easyui_textbox_input1").val("")
+			for (var i=0;i<textboxs.length;i++){
+				var textbox = textboxs[i];
+				textbox.value = "";
+				break;
+			}
+    	}
+        function FindData(){
+        	var text = $("#text").val();
+			$('#filelist').tree({
+				url: '../datalist/?type={{type}}&text='+text,
+				method:'post',
+				animate:true,
+				formatter:function(node){
+					node.id = node.domId;
+					var s = node.text;
+					if (node.children){
+						s += ' <span style=\'color:blue\'>(' + node.children.length + ')</span>';
+					}
+					return s;
+				},
+				loadFilter: function(data){
+					if (data.rows){
+						return data.rows;
+					} else {
+						return data;
+					}
+				},
+			});
+        }
+        function setSelect(){
+        	$(":input").val("");
+        }
+        function getRow(){
+			var row = $('#filelist').tree('getSelected');
+			var path = "";
+			if (row == "" || row == null){
+				var type = "{{type}}";
+				if (type == "public"){
+					path = "public";
+				}else if(type == "release"){
+					path = "release";
+				}else{
+					path = "{{username}}";
+				}
+			}else{
+				path = row.path;
+			}
+			return path;
+        }
+        function getDeleteRow(){
+			var row = $('#filelist').tree('getSelected');
+			var path = "";
+			if (row != "" && row != null){
+				path = row.path;
+			}
+			return path;
+        }
+    </script>
+	<style>
+		.panel-body-noheader {
+			width: fit-content !important;
+			min-width: 314px;
+		}
+	</style>
+</head>
+<body>
+	<div id="tb" style="padding:5px;height:auto">
+        <input type="text" id="text" name="text" class="easyui-textbox" style="width:200px">
+		<a href="javascript:FindData()" class="easyui-linkbutton" iconCls="icon-search">{% trans "Search" %}</a>
+    </div>
+	<div class="easyui-panel" style="padding:5px">
+		<ul id="filelist">
+		</ul>
+		<script>
+			$('#filelist').tree({
+				url: '../datalist/?type={{type}}&text=',
+				method:'post',
+				animate:true,
+				dnd:true,
+				onBeforeDrop: function(target,source,point){
+					var innerHtml = target.innerHTML;
+					if (innerHtml.indexOf("tree-file") > 0 && point == "append"){
+						return false;
+					}else{
+						var targetID = $('#filelist').tree('getNode', target).id;
+						var node = $('#filelist').tree('find', targetID);
+						var path1;
+						if (point == "append"){
+							path1 = node.path;
+						}else{
+							var files = node.path.split("\\");
+							path1 = files[0];
+							for (var i=1;i<files.length-1;i++){
+								path1 = path1 + "\\" + files[i];
+							}
+						}
+						var path2 = source.path;
+						if (path2.indexOf(".py") == -1){
+						    return false;
+						}
+						$.ajax({
+							type:'POST',
+							url:'../movefile/',
+							dataType:'json',
+							data:{"path1":path1,"path2":path2},
+							success:function(data){
+							  	result = data['result'];
+							  	if (result == "failed"){
+							  		reason = data['reason'];
+							  		if (reason == "exist"){
+										window.parent.layerMsg('{% trans "You do not have the authority" %}');
+							  		}
+							  		FindData();
+							  		return false;
+							  	}else{
+							  		FindData();
+							  	}
+							}
+						})
+					}
+				},
+				formatter:function(node){
+					node.id = node.domId;
+					var s = node.text;
+					if (node.children){
+						s += ' <span style=\'color:blue\'>(' + node.children.length + ')</span>';
+					}
+					return s;
+				},
+				onBeforeLoad: function(node,param){
+					layer.load(1);
+				},
+				loadFilter: function(data){
+					if (data.rows){
+						return data.rows;
+					} else {
+						return data;
+					}
+				},
+				onLoadSuccess(node,data){
+					layer.closeAll('loading');
+				},
+				onLoadError(arguments){
+					layer.closeAll('loading');
+				},
+				onClick:function(node){
+					var path = node.path;
+					if (path.indexOf(".py") != -1){
+						var files = path.split("\\");
+						var filename = files[files.length - 1];
+						filename = filename.replace(".py","");
+						setSelect();
+						$("#text").val(filename);
+						var textboxs = $(".textbox-value");
+						$("#_easyui_textbox_input1").val(filename)
+						for (var i=0;i<textboxs.length;i++){
+							var textbox = textboxs[i];
+							textbox.value = filename;
+							break;
+						}
+					}
+				}
+			});
+		</script>
+	</div>
+</body>
+</html>

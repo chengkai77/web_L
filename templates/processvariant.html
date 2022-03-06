@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	{% load i18n %}
+    {% get_current_language as LANGUAGE_CODE %}
+	<title>Process Variant</title>
+	<link rel="stylesheet" type="text/css" href="../static/javascript/layer/default/layer.css">
+    <link rel="stylesheet" type="text/css" href="../static/javascript/layer/default/layer_ui.css">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+	<script id="layer" type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>
+    <script>
+        $(document).ready(function(){
+            var selectfile = "{{selectfile}}";
+            $.ajax({
+              type:'POST',
+              url:'../showprocess/',
+              dataType:'json',
+              data:{"selectfile":selectfile},
+              success:function(data){
+                result = data['result'];
+                if (result == "success"){
+                    var list = data['list'];
+                    var selection_list = data['selection_list'];
+                    var selection_json = {};
+                    for (var j=0;j<selection_list.length;j++){
+                        var selection_json2 = selection_list[j];
+                        var node_name = selection_json2.function;
+                        var variant = selection_json2.variant;
+                        selection_json[node_name+"-"+variant] = "yes";
+                    }
+                    for (var n=0;n<list.length;n++){
+                      var id = list[n].source_id;
+                      var node_name = list[n].jnode_html.replace("<span>","").replace("</span>","");
+                      list[n].node_name = node_name;
+                    }
+                    var div = document.getElementById("body");
+                    for (var i=0;i<list.length;i++){
+                        var html = '';
+                        var id = list[i].source_id;
+                        var nodeName = list[i].node_name;
+                        var name = list[i].name;
+                        var legend_name = "";
+                        if (name != "" && name != null){
+                            legend_name = nodeName + "(" + name + ")";
+                        }else{
+                            legend_name = nodeName;
+                        }
+                        html = '<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;"><legend>' + legend_name + '</legend></fieldset><div class="layui-form" id="' + id + '">';
+                        var public_variant = list[i].public_variant;
+                        var n = 0, m = 0;
+                        if (public_variant != "" && public_variant != null && public_variant != "{}"){
+                            var public_json = eval('(' + public_variant + ')');
+                            for(var key in public_json){
+                                var value = public_json[key];
+                                m = n%3;
+                                var selection_name = nodeName + "-" + key;
+                                if (m == 0){
+                                    html = html + '<div class="layui-form-item"><div class="layui-inline"><label class="layui-form-label" style="width:fit-content;min-width:80px;">'
+                                    html = html + key.toString() + '</label><div class="layui-input-inline">';
+                                    if (selection_name in selection_json){
+                                        html = html + '<select name="' + key + '" lay-verify="">'
+                                        for (j=0;j<selection_list.length;j++){
+                                            var selection_json2 = selection_list[j];
+                                            var node_name = selection_json2.function;
+                                            var variant = selection_json2.variant;
+                                            if (node_name == nodeName && variant == key){
+                                                var option_value = selection_json2.value;
+                                                var option_text = selection_json2.text;
+                                                var choose = selection_json2.choose;
+                                                if (value != "" && value != "Null" && typeof(value) != "undefined"){
+                                                	if (option_value == value){
+                                                		html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+                                                	}else{
+                                                		html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+                                                	}
+                                                }else{
+                                                	if (choose == "1"){
+                                                    	html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+													}else{
+														html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+													}
+                                                }
+                                            }
+                                        }
+                                        html = html + '</select>'
+                                    }else{
+                                        html = html + '<input type="text" name="' + key + '" autocomplete="off" class="layui-input" value='+value+'>'
+                                    }
+                                    html = html + '</div></div>'
+                                }else if(m == 1){
+                                    html = html + '<div class="layui-inline"><label class="layui-form-label" style="width:fit-content;">'
+                                    html = html + key.toString() + '</label><div class="layui-input-inline">';
+                                    if (selection_name in selection_json){
+                                        html = html + '<select name="' + key + '" lay-verify="">'
+                                        for (j=0;j<selection_list.length;j++){
+                                            var selection_json2 = selection_list[j];
+                                            var node_name = selection_json2.function;
+                                            var variant = selection_json2.variant;
+                                            if (node_name == nodeName && variant == key){
+                                                var option_value = selection_json2.value;
+                                                var option_text = selection_json2.text;
+                                                var choose = selection_json2.choose;
+                                                if (value != "" && value != "Null" && typeof(value) != "undefined"){
+                                                	if (option_value == value){
+                                                		html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+                                                	}else{
+                                                		html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+                                                	}
+                                                }else{
+                                                	if (choose == "1"){
+                                                    	html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+													}else{
+														html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+													}
+                                                }
+                                            }
+                                        }
+                                        html = html + '</select>'
+                                    }else{
+                                        html = html + '<input type="text" name="' + key + '" autocomplete="off" class="layui-input" value='+value+'>'
+                                    }
+                                    html = html + '</div></div>'
+                                }else if(m == 2){
+                                    html = html + '<div class="layui-inline"><label class="layui-form-label" style="width:fit-content;">'
+                                    html = html + key.toString() + '</label><div class="layui-input-inline">';
+                                    if (selection_name in selection_json){
+                                        html = html + '<select name="' + key + '" lay-verify="">'
+                                        for (j=0;j<selection_list.length;j++){
+                                            var selection_json2 = selection_list[j];
+                                            var node_name = selection_json2.function;
+                                            var variant = selection_json2.variant;
+                                            if (node_name == nodeName && variant == key){
+                                                var option_value = selection_json2.value;
+                                                var option_text = selection_json2.text;
+                                                var choose = selection_json2.choose;
+                                                if (value != "" && value != "Null" && typeof(value) != "undefined"){
+                                                	if (option_value == value){
+                                                		html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+                                                	}else{
+                                                		html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+                                                	}
+                                                }else{
+                                                	if (choose == "1"){
+                                                    	html = html + '<option value="' + option_value + '" selected>' + option_text + '</option>'
+													}else{
+														html = html + '<option value="' + option_value + '">' + option_text + '</option>'
+													}
+                                                }
+                                            }
+                                        }
+                                        html = html + '</select>'
+                                    }else{
+                                        html = html + '<input type="text" name="' + key + '" autocomplete="off" class="layui-input" value='+value+'>'
+                                    }
+                                    html = html + '</div></div></div>'
+                                }
+                                n = n + 1;
+                            }
+                        }else{
+                            continue;
+                        }
+                        html = html + '</div>'
+                        $("#body").append(html);
+                    }
+                    layui.use('form', function(){
+                        var form = layui.form;
+                        form.render();
+                    });
+                  }else{
+                    layer.alert('{% trans "Open failed, file has been damaged" %}!', {
+                        title: '{% trans "Open Failed" %}',
+                        skin: 'layui-layer-lan',
+                        closeBtn: 1,
+                        icon: 5,
+                        offset: 'rb',
+                        btn: false,
+                    });
+                  }
+                }
+            })
+        })
+    </script>
+</head>
+<body>
+
+	<div id="body">
+		<!--<fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">-->
+			<!--<legend>Open_Workbook</legend>-->
+		<!--</fieldset>-->
+
+		<!--<div class="layui-form" action="">-->
+			<!--<div class="layui-form-item">-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant1</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant2</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant3</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+			<!--</div>-->
+			<!--<div class="layui-form-item">-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant4</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant5</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+				<!--<div class="layui-inline">-->
+				  <!--<label class="layui-form-label">variant6</label>-->
+				  <!--<div class="layui-input-inline">-->
+					<!--<input type="text" name="email" lay-verify="email" autocomplete="off" class="layui-input">-->
+				  <!--</div>-->
+				<!--</div>-->
+			<!--</div>-->
+
+
+		<!--</div>-->
+	</div>
+    <!--<div class="layui-form-item">-->
+	    <!--<div class="layui-input-block">-->
+		    <!--<button type="submit" class="layui-btn" lay-submit lay-filter="demo1">Submit</button>-->
+			<!--<button type="reset" class="layui-btn layui-btn-primary">Cancel</button>-->
+        <!--</div>-->
+    <!--</div>-->
+</body>
+</html>

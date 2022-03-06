@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<title>Python Platform</title>
+<link href="../static/style/ligerui-all.css" rel="stylesheet" type="text/css">
+<link href="../static/style/main.css" rel="stylesheet" type="text/css">
+<link href="../static/style/head.css" rel="stylesheet" type="text/css">
+<link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+<link href="../static/style/simple-line-icons/css/simple-line-icons.css" rel="stylesheet" type="text/css">
+<link href="../static/style/bootstraphead.min.css" rel="stylesheet" type="text/css">
+<link href="../static/style/components.min.css" rel="stylesheet" id="style_components" type="text/css">
+<link href="../static/style/layout.min.css" rel="stylesheet" type="text/css">
+<link href="../static/style/darkblue.min.css" rel="stylesheet" type="text/css">
+<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+<script src="../static/javascript/jquery.min.js" type="text/javascript"></script>
+<script src="../static/javascript/ligerui.all.js" type="text/javascript"></script>
+<script src="../static/javascript/jquery.cookie.js"></script>
+<script src="../static/javascript/json2.js"></script>
+<script src="../static/javascript/main.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/indexdata.js" type="text/javascript"></script>
+<script src="../static/javascript/bootstraphead.min.js" type="text/javascript"></script>
+<script src="../static/javascript/app.min.js" type="text/javascript"></script>
+<script src="../static/javascript/layout.min.js" type="text/javascript"></script>
+<script src="../static/javascript/createTools.js" type="text/javascript"></script>
+<script>
+$(document).ready(function(){
+    var booked_tasks = {{ booked_tasks|safe }};
+    $("#tasks").html(booked_tasks.length);
+    $("#tasks_qty").html(booked_tasks.length);
+    var update = "{{ update }}"
+    var html1 = "";
+    var html2 = "";
+    var task = $("#tasks_list");
+    var notification = $("#notification_list");
+    task.empty();
+    notification.empty();
+    for (var i=0;i<booked_tasks.length;i++){
+        html1 = html1 + '<li><a href="javascript:;"><span class="task"><span class="desc">'+booked_tasks[i].task_name+'</span>'
+               +'<span class="percent">'+booked_tasks[i].duration+'</span></span><br><span class="subject"><span class="from">'
+               +booked_tasks[i].pc_name+'</span><span class="time">'+booked_tasks[i].booked_time+'</span></span></a></li>'
+    }
+    task.append(html1);
+    var finished_tasks = {{ finished_tasks|safe }};
+    for (var j=0;j<finished_tasks.length;j++){
+        var result = finished_tasks[j].result;
+        var label = "";
+        if (result == "success"){
+            label = '<span class="label label-sm label-icon label-success"><i class="fa fa-plus"></i></span>'
+        }else{
+            label = '<span class="label label-sm label-icon label-danger"><i class="fa fa-bolt"></i></span>'
+        }
+        html2 = html2 + '<li><a href="javascript:;"><span class="time" title="'+finished_tasks[j].end_time2+'">'+finished_tasks[j].end_time1
+                +'</span><span class="details">'+label+finished_tasks[j].task_name+'</span></a></li>'
+    }
+    notification.append(html2);
+    $("#notification").html(finished_tasks.length);
+    $("#notification_qty").html(finished_tasks.length);
+    var lastTime = new Date().getTime();
+    var currentTime = new Date().getTime();
+    var timeOut = 60 * 60 * 1000; //设置超时时间： 1h
+
+    $(function(){
+        /* 鼠标移动事件 */
+        $(document).mouseover(function(){
+            lastTime = new Date().getTime(); //更新操作时间
+
+        });
+    });
+
+    function testTime(){
+        currentTime = new Date().getTime(); //更新当前时间
+        if(currentTime - lastTime > timeOut){ //判断是否超时
+            window.location.href = "../logout/";
+        }
+    }
+
+    /* 定时器  间隔1秒检测是否长时间未操作页面  */
+    window.setInterval(testTime, 1000);
+    })
+    function test(){
+        window.location.href = "../export/";
+    }
+    function updateAlerts(){
+        $.ajax({
+            type:'POST',
+            url:'../getalerts/',
+            dataType:'json',
+            async : false,
+            data:{},
+            success:function(data){
+                var booked_tasks = data.booked_tasks;
+                $("#tasks").html(booked_tasks.length);
+                $("#tasks_qty").html(booked_tasks.length);
+                var html1 = "";
+                var html2 = "";
+                var task = $("#tasks_list");
+                var notification = $("#notification_list");
+                task.empty();
+                notification.empty();
+                for (var i=0;i<booked_tasks.length;i++){
+                    html1 = html1 + '<li><a href="javascript:;"><span class="task"><span class="desc">'+booked_tasks[i].task_name+'</span>'
+                           +'<span class="percent">'+booked_tasks[i].duration+'</span></span><br><span class="subject"><span class="from">'
+                           +booked_tasks[i].pc_name+'</span><span class="time">'+booked_tasks[i].booked_time+'</span></span></a></li>'
+                }
+                task.append(html1);
+                var finished_tasks = data.finished_tasks;
+                for (var j=0;j<finished_tasks.length;j++){
+                    var result = finished_tasks[j].result;
+                    var label = "";
+                    if (result == "success"){
+                        label = '<span class="label label-sm label-icon label-success"><i class="fa fa-plus"></i></span>'
+                    }else{
+                        label = '<span class="label label-sm label-icon label-danger"><i class="fa fa-bolt"></i></span>'
+                    }
+                    html2 = html2 + '<li><a href="javascript:;"><span class="time" title="'+finished_tasks[j].end_time2+'">'+finished_tasks[j].end_time1
+                            +'</span><span class="details">'+label+finished_tasks[j].task_name+'</span></a></li>'
+                }
+                notification.append(html2);
+                $("#notification").html(finished_tasks.length);
+                $("#notification_qty").html(finished_tasks.length);
+                $("#update").val("");
+            }
+        })
+    }
+</script>
+<script>
+  function returnhome() {
+      var g = this, p = this.options;
+      $.ligerMenu({ width: 100, items: [
+        { text: p.closeAllMessage, id: 'closeall', click: function ()
+        {g._menuItemClick.apply(g, arguments);}},]});
+  }
+  function openHtml(url,lastIP,lastLogin,page,title){
+      var jump2url = "";
+      if (url == "../updateinformation/"){
+          jump2url = url + "?ip=" + lastIP + "&lastLogin=" + lastLogin + "&page=" + page;
+      }else{
+          jump2url = url;
+      }
+      var index = layer.open({
+          type: 2,
+          title: title,
+          content: jump2url,
+          area: ['320px', '195px'],
+          maxmin: true,
+      });
+      layer.full(index);
+  }
+</script>
+<style>
+  .layui-form-switch{
+      margin-top: -2px;
+      background-color: #2b3643;
+      border-color: #2b3643;
+  }
+</style>
+</head>
+<body>
+ <!--头窗体-->
+  <div id="pageloading"></div>
+  <div id="topmenu" class="pg-header">
+  <div class="page-header navbar navbar-fixed-top">
+      <div class="page-header-inner">
+        <div class="page-logo" style="float:left;">
+          <a href="#">
+            <span class="logo-default" style="color:white;font-size:30px;font-weight:bold;">KOSTAL</span>
+            <!--<img src="../static/images/icon/logo.jpg" alt="logo" class="logo-default">-->
+          </a>
+        </div>
+        <div id="open_file_path" style="max-width:400px;float:left;height:50px;">
+<!--          <marquee id="open_file_path" behavior=scroll class="logo-default" style="white-space: nowrap;text-overflow: ellipsis;color:white;font-size:18px;font-weight:bold;"></marquee>-->
+        </div>
+        <a href="javascript:;" class="menu-toggler responsive-toggler" data-toggle="collapse" data-target=".navbar-collapse">
+          <span></span>
+        </a>
+        <div class="top-menu">
+          <ul class="nav navbar-nav pull-right">
+            <li class="dropdown dropdown-extended dropdown-notification" id="auto_create_line">
+                <form class="layui-form" action="">
+                  <div class="layui-input-block">
+                    <input type="checkbox" id="connection" name="close" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
+                  </div>
+                </form>
+                <script>
+                  layui.use(['form'], function(){
+                    var form = layui.form,layer = layui.layer;
+                    form.on('switch(switchTest)', function(data){
+                      if (this.checked == true){
+                        layer.tips('Automatic Connection', data.othis);
+                      }else{
+                        layer.tips('Manual Connection', data.othis);
+                      }
+                    });
+                    form.render();
+                  })
+                </script>
+            </li>
+            <li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
+              <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                <i class="icon-bell"></i>
+                <span id="notification" class="badge badge-default">2</span>
+              </a>
+              <ul class="dropdown-menu">
+                <li class="external">
+                  <h3>
+                    <span id="notification_qty" class="bold">2</span> unread notification</h3>
+                  <a href="javascript:;">All</a></li>
+                <li>
+                  <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 250px;">
+                    <ul id="notification_list" class="dropdown-menu-list scroller" style="height: 250px; overflow: hidden; width: auto;overflow-y:scroll;" data-handle-color="#637283" data-initialized="1">
+                    </ul>
+                    <div class="slimScrollBar" style="background: rgb(99, 114, 131); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: block; border-radius: 7px; z-index: 99; right: 1px;"></div>
+                    <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(234, 234, 234); opacity: 0.2; z-index: 90; right: 1px;"></div>
+                  </div>
+                </li>
+              </ul>
+            </li>
+            <li class="dropdown dropdown-extended dropdown-tasks" id="header_task_bar">
+              <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                <i class="icon-calendar"></i>
+                <span id="tasks" class="badge badge-default">3</span></a>
+              <ul class="dropdown-menu extended tasks">
+                <li class="external">
+                  <h3>you have
+                    <span id="tasks_qty" class="bold">12</span> assignment</h3>
+                  <a href="javascript:;">All</a></li>
+                <li>
+                  <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 275px;">
+                    <ul id="tasks_list" class="dropdown-menu-list scroller" style="height: 275px; overflow: hidden; width: auto;overflow-y:scroll;" data-handle-color="#637283" data-initialized="1">
+                    </ul>
+                    <div class="slimScrollBar" style="background: rgb(99, 114, 131); width: 7px; position: absolute; top: 0px; opacity: 0.4; display: block; border-radius: 7px; z-index: 99; right: 1px;"></div>
+                    <div class="slimScrollRail" style="width: 7px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(234, 234, 234); opacity: 0.2; z-index: 90; right: 1px;"></div>
+                  </div>
+                </li>
+              </ul>
+            </li>
+            <li class="dropdown dropdown-user">
+              <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
+                <img alt="" class="img-circle" src={{ imageurl }}>
+                <span class="username username-hide-on-mobile">{{ user }}</span>
+                <i class="fa fa-angle-down"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-default">
+                {% if 'Draw_Process.views_panel_user_list' in perms %}
+                <li>
+                  <a id="user_list" href="javascript:openHtml('../orguser/','','','','User List')">
+                    <i class="icon-user-follow"></i>User List</a>
+                </li>
+                {% endif %}
+                {% if 'Draw_Process.views_panel_role_list' in perms %}
+                <li>
+                  <a id="role_list" href="javascript:openHtml('../orgrole/','','','','Role List')">
+                    <i class="icon-people"></i>Role List</a>
+                </li>
+                {% endif %}
+                {% if 'Draw_Process.views_panel_personal_data' in perms %}
+                <li>
+                  <a href="javascript:openHtml('../updateinformation/','{{ lastIP }}','{{ lastLogin }}','information','Personal Data')">
+                    <i class="icon-user"></i>Personal Data</a>
+                </li>
+                {% endif %}
+                {% if 'Draw_Process.views_panel_change_password' in perms %}
+                <li>
+                  <a href="javascript:openHtml('../updateinformation/','{{ lastIP }}','{{ lastLogin }}','password','Personal Data')">
+                    <i class="icon-key"></i>Change Password</a>
+                </li>
+                {% endif %}
+                <li class="divider"></li>
+                <li>
+                  <a href="/logout/">
+                    <i class="icon-power"></i>Log Off</a>
+                </li>
+              </ul>
+            </li>
+            <li class="dropdown dropdown-quick-sidebar-toggler">
+              <a href="" onclick="returnhome()" title="Homepage" class="dropdown-toggle">
+                <i class="icon-power"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--主体-->
+  <div id="layout1" style="height:98%;width:99.2%; margin:0 auto; margin-top:4px; ">
+   <div position="center" id="framecenter">
+    <div style="height:300px" id="homepage">
+     <iframe frameborder="0" name="home" id="home" src="/welcome"></iframe>
+    </div>
+   </div>
+  </div>
+  <div style="height:32px; line-height:32px; text-align:center;">
+    &copy; 2020 Teclead Licence
+  </div>
+  <div style="display:none"></div>
+ </body>
+</html>

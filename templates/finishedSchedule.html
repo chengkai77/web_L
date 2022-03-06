@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Finished Tasks" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+<link href="../static/javascript/layer/default/laydate.css" rel="stylesheet">
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+<style>
+	.ui-jqgrid .ui-userdata {
+		height: 25px;
+	}
+</style>
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa fa-tasks"></i>{% trans "Finished Tasks" %}
+			</div>
+			<div class="box-tools pull-right">
+				<a href="#" class="btn btn-default" id="btnSearch"><i class="fa fa-filter"></i>{% trans "Search" %}</a>
+				<!--<a href="/exportuserlist/" class="btn btn-default" id="btnExport"><i class="glyphicon glyphicon-export"></i>{% trans "Export" %}</a>-->
+			</div>
+		</div>
+		<div class="box-body">
+			<form id="searchForm" action="/finishedlist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "User" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="loginCode" name="loginCode" value="{{ username }}" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "PC Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="pcName" name="pcName" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Status" %}:</label>
+					<div class="control-inline" style="width:80px;">
+						<select id="status" name="status" class="form-control width-120">
+							<option value="">&nbsp;</option>
+							<option value="unread" selected>{% trans "unread" %}</option>
+							<option value="read">{% trans "read" %}</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Start Date" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="start" name="start" lay-verify="required" class="form-control width-120" autocomplete="off" readonly="readonly">
+						-
+						<input type="text" id="end" name="end" lay-verify="required" class="form-control width-120" autocomplete="off" readonly="readonly">
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+			<input id="reload" style="display:none;" value="no">
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/layer/layui.all.en.js"></script>
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+var msg_json = {};
+function saveRows(ele){
+	if (ele == '' || typeof(ele) == 'undefined'){
+		var rows = $("#dataGrid").dataGrid('getGridParam','selarrrow');
+		if (rows.length > 0){
+			var select_rows = new Array;
+			for (var i=0;i<rows.length;i++){
+				var rowId = rows[i];
+				var rowData = $("#dataGrid").dataGrid('getRowData',rowId);
+				var row_id = rowData['id'];
+				select_rows.push(parseInt(row_id));
+			}
+			$.ajax({
+				type:'POST',
+				url:'../updatefinishedtask/',
+				dataType:'json',
+				data:{'rows':select_rows},
+				success:function(data){
+					var result = data['result'];
+					if (type = "success"){
+						js.showMessage('{% trans "Save successfully" %}!');
+						$("#dataGrid").trigger("reloadGrid");
+					}else{
+						js.showMessage('{% trans "Save failed" %}!', null, 'warning');
+					}
+				}
+			})
+		}
+	}else{
+		$.ajax({
+			type:'POST',
+			url:'../updatefinishedtask/',
+			dataType:'json',
+			data:{'row':ele},
+			success:function(data){
+				var result = data['result'];
+				if (type = "success"){
+					js.showMessage('{% trans "Save successfully" %}!');
+					$("#dataGrid").trigger("reloadGrid");
+				}else{
+					js.showMessage('{% trans "Save failed" %}!', null, 'warning');
+				}
+			}
+		})
+	}
+	window.parent.parent.updateAlerts();
+}
+
+function deleteRows(ele){
+	layer.confirm('{% trans "Are you sure to delete" %}?', {
+        title: '{% trans "Delete Confirmation" %}',
+        btn: ['{% trans "Yes" %}', '{% trans "No" %}',]
+    },function(index) {
+    	layer.close(index);
+    	if (ele == '' || typeof(ele) == 'undefined'){
+    		var rows = $("#dataGrid").dataGrid('getGridParam','selarrrow');
+			if (rows.length > 0){
+				var select_rows = new Array;
+				for (var i=0;i<rows.length;i++){
+					var rowId = rows[i];
+					var rowData = $("#dataGrid").dataGrid('getRowData',rowId);
+					var row_id = rowData['id'];
+					select_rows.push(parseInt(row_id));
+				}
+				$.ajax({
+					type:'POST',
+					url:'../deletefinishedtask/',
+					dataType:'json',
+					data:{'rows':select_rows},
+					success:function(data){
+						var result = data['result'];
+						if (type = "success"){
+							js.showMessage('{% trans "Delete successfully" %}!');
+							$("#dataGrid").trigger("reloadGrid");
+						}else{
+							js.showMessage('{% trans "Delete failed" %}!', null, 'warning');
+						}
+					}
+				})
+			}
+    	}else{
+    		$.ajax({
+				type:'POST',
+				url:'../deletefinishedtask/',
+				dataType:'json',
+				data:{'row':ele},
+				success:function(data){
+					var result = data['result'];
+					if (type = "success"){
+						js.showMessage('{% trans "Delete successfully" %}!');
+						$("#dataGrid").trigger("reloadGrid");
+					}else{
+						js.showMessage('{% trans "Delete failed" %}!', null, 'warning');
+					}
+				}
+			})
+    	}
+    	window.parent.parent.updateAlerts();
+    })
+}
+
+function showMsg(step,rowId){
+	var msg = msg_json[rowId];
+	if (msg.indexOf("{") != -1){
+		var msg_2_json = JSON.parse(msg);
+		var msg_html =  '<br>' + '<span style="color:red;">{% trans "Error Message: " %}</span>' + gettext(msg_2_json.conso);
+		var line = msg_2_json.line;
+		if (line){
+			msg_html = 	msg_html + '<br>' + '<span style="color:red;">{% trans "Error Node: " %}</span>' + line;
+		}
+		msg_html = msg_html + '<br>' + '<span style="color:red;">{% trans "Error Code: " %}</span>' + gettext(msg_2_json.code);
+	}else{
+		var msg_html =  '<br>' + '<span style="color:red;">{% trans "Error Message: " %}</span>' + gettext(msg);
+	}
+	layer.msg('<span style="color:red;">{% trans "Error Step: " %}</span>' + gettext(step) + msg_html, {
+    	icon: 2,
+    	btn: ['{% trans "Close" %}'],
+        time: false
+    })
+}
+
+ $(function(){
+// 初始化DataGrid对象
+	$('#dataGrid').dataGrid({
+		searchForm: $("#searchForm"),
+		columnModel: [
+			{header:'ID', name:'id', index:'id', hidden:true},
+			{header:'{% trans "User" %}', name:'create_by', index:'create_by', width:120, align:"center", frozen:true},
+			{header:'{% trans "PC Name" %}', name:'pc_name', index:'pc_name', width:120, align:"center"},
+			{header:'{% trans "Operated IP" %}', name:'ip_address', index:'ip_address', width:200, align:"center"},
+			{header:'{% trans "Start" %}', name:'start_time', index:'start_time', width:200, align:"center"},
+			{header:'{% trans "Duration" %}', name:'duration', index:'duration', width:120, align:"center", sortable: false},
+			{header:'{% trans "Task Name" %}', name:'task_name', index:'task_name', width:200, align:"center"},
+			{header:'{% trans "File Name" %}', name:'file_name', index:'file_name', width:200, align:"center"},
+			{header:'{% trans "File Path" %}', name:'processPath', index:'processPath', width:300, align:"center", sortable: false},
+			{header:'{% trans "Status" %}', name:'status', index:'status', width:100, align:"center"},
+			{header:'{% trans "Result" %}', name:'result', index:'result', width:100, align:"center"},
+			{header:'{% trans "Operation" %}', name:'actions', width:120, sortable:false, title:false, formatter: function(val, obj, row, act){
+				var actions = [];
+				var id = row.id;
+				actions.push('<a href="javascript:saveRows('+id+')" class="btnList" title="{% trans "Save" %}" data-click-binded="true"><i class="fa fa-save"></i></a>&nbsp;');
+				actions.push('<a href="javascript:deleteRows('+id+')" class="btnList" title="{% trans "Delete" %}" data-click-binded="true"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				if (row.result != '{% trans "success" %}'){
+					var step = row.step;
+					var msg = row.message;
+					msg_json[id] = msg;
+					actions.push('<a href="javascript:showMsg('+"'"+step+"','"+id+"'"+')" class="btnList" title="Error Information" data-click-binded="true"><i class="fa fa-info-circle"></i></a>&nbsp;');
+				}
+				return actions.join('');
+			}}
+		],
+		showCheckbox: true,
+		toolbar:[true,"top"],
+		// 加载成功后执行事件
+		ajaxSuccess: function(data){
+		}
+	});
+	var html = '<div class = "ui-jqgrid actions"><a href="javascript:saveRows('+')" class="btn btn-default btn-xs btnList" id="btnSave" title="{% trans "Save" %}" style="border:none;"><i class="fa fa-save"></i></a>'
+				+'<a href="javascript:deleteRows('+')" class="btn btn-default btn-xs btnList" id="btnDelete" title="{% trans "Delete" %}" style="border:none;"><i class="fa fa-trash-o"></i></a></div>';
+	$("#t_dataGrid").css("background","#F4F4F4");
+	$("#t_dataGrid").append(html);
+});
+</script>
+<script>
+{% if language == 'en' %}
+layui.use('laydate', function(){
+	    var laydate = layui.laydate;
+	    laydate.render({
+            elem: '#start'
+            ,lang: 'en'
+            ,trigger: 'click'
+        });
+        laydate.render({
+            elem: '#end'
+            ,lang: 'en'
+            ,trigger: 'click'
+        });
+})
+{% else %}
+layui.use('laydate', function(){
+	    var laydate = layui.laydate;
+	    laydate.render({
+            elem: '#start'
+            ,trigger: 'click'
+        });
+        laydate.render({
+            elem: '#end'
+            ,trigger: 'click'
+        });
+})
+{% endif %}
+</script>
+</html>

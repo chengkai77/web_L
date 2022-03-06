@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html translate="no">
+<head>
+  <meta charset="utf-8">
+  <!--<meta name="viewport" content="width=device-width,initial-scale=1.0">-->
+  <title>Process Detail</title>
+  <link href="../static/javascript/jvisio-flow/lib/fonts/font-awesome.min.css" rel="stylesheet">
+  <link href="../static/javascript/jvisio-flow/lib/fonts/simple-line-icons.css" rel="stylesheet">
+  <link href="../static/javascript/jvisio-flow/lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/javascript/jvisio-flow/lib/jqueryui/jquery-ui.css" rel="stylesheet">
+  <link href="../static/javascript/jvisio-flow/jvisio.css" rel="stylesheet">
+  <link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+  <link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+  <link href="../static/javascript/layer/default/layui2.css" rel="stylesheet">
+  <link href="../static/style/dropdown/normalize.min.css" rel="stylesheet">
+  <link href="../static/style/dropdown/style.css" rel="stylesheet">
+  <script>
+    function getConnections(){
+        var json = {};
+        var json2 = {};
+        var connections = jsPlumb.getAllConnections();
+        startID = "";
+        nextID = "";
+        for(var i in connections){
+            try{
+              var a = connections[i].sourceId;
+              var startdiv = document.getElementById(a);
+              var div_width = startdiv.offsetWidth;
+              var starttext = "";
+              if (document.getElementById(a)){
+                starttext = startdiv.innerText;
+                var div_name = startdiv.children[0].children[0].getAttribute("name");
+                if (div_name == null || typeof(div_name) == "undefined"){
+                    div_name = "";
+                }
+                if (starttext == "Start"){
+                    startID = a;
+                }
+              }else{
+                continue;
+              }
+              var b = connections[i].targetId;
+              nextID = b;
+              var enddiv = document.getElementById(b);
+              var endtext = enddiv.innerText;
+              var nextNode = starttext + "_" + i + "_" + "nextNode";
+              json2[a] = b;
+              json2[a+"width"] = div_width;
+              json2[a+"div_name"] = div_name;
+              json2[a+"text"] = starttext;
+              json2[a+"source_type"] = connections[i].endpoints[0].anchor.type;
+              json2[a+"target_type"] = connections[i].endpoints[1].anchor.type;
+              json2[a+"text"] = starttext;
+              json2[b+"text"] = endtext;
+            }catch(err){
+              try{
+                next;
+              }catch(err){
+                console.log(err);
+              }
+            }
+        }
+        var len = connections.length;
+        json['length'] = len;
+        json['startID'] = startID;
+        j = 0;
+        var browser_input = [];
+        for(var i=0;i<len;i++){
+            j = j + 1;
+            var nextID = json2[startID];
+            if (typeof(nextID) == "undefined"){
+                json['length'] = i;
+                break;
+            }
+            var startText = json2[startID+"text"];
+            if (startText == "User_Input"){
+                browser_input.push(startID);
+            }
+            var linkText = json2[nextID+"text"];
+            if (linkText == "End"){
+                json[nextID+"nodeNo"] = parseInt(i+2);
+                json[nextID+"text"] = "End";
+                json[startID+"source_type"] = json2[startID+"source_type"];
+                json[startID+"target_type"] = json2[startID+"target_type"];
+                json[startID+"div_name"] = json2[startID+"div_name"];
+                json[startID+"text"] = startText;
+                json[startID] = nextID;
+                json[startID+"nextNode"] = linkText;
+                json[nextID+"lastNode"] = startText;
+                json[startID+"nodeNo"] = parseInt(i+1);
+                startID = nextID;
+                break;
+            }
+            json[startID+"source_type"] = json2[startID+"source_type"];
+            json[startID+"target_type"] = json2[startID+"target_type"];
+            json[startID+"text"] = startText;
+            json[startID+"div_name"] = json2[startID+"div_name"];
+            json[startID] = nextID;
+            json[startID+"nextNode"] = linkText;
+            json[nextID+"lastNode"] = startText;
+            json[startID+"nodeNo"] = parseInt(i+1);
+            startID = nextID;
+        }
+        json['length'] = j;
+        json['browser_input'] = browser_input;
+        return json;
+    }
+    function drawprocess(connections){
+        var main_height = $("#diagramContainer-main").height();
+        var qtys = parseInt(main_height/70);
+        var div_list = connections['list'];
+        var con_list = []
+        var id1 = "";
+        var id2 = "";
+        var direction1 = "";
+        var direction2 = "";
+        for (var i=0;i<div_list.length;i++){
+            var divID = div_list[i];
+            var dataObj = {};
+            dataObj.id = divID;
+            dataObj.jnode = connections[divID+"jnode"];
+            dataObj.jnodeClass = connections[divID+"jnode_class"];
+            dataObj.jnodeHtml = connections[divID+"jnode_html"];
+            dataObj.left = connections[divID+"left"];
+            dataObj.top = connections[divID+"top"];
+            var labelName = connections[divID+"name"];
+            var visible = false;
+            if (labelName == "" || labelName == "null" || typeof(labelName) == "undefined"){
+              visible = false;
+              labelName = "";
+            }else{
+              visible = true;
+            }
+            $("#left").val(dataObj.left);
+            $("#top").val(dataObj.top);
+            var targetHtml = Mustache.render($("#jnode-template").html(), dataObj);
+            $("#diagramContainer-main").append(targetHtml);
+            jsPlumb.draggable(divID, {containment: 'parent'});
+            visioConfig.baseArchors.forEach(function (key) {
+              jsPlumb.addEndpoint(
+                divID,
+                {
+                  anchors: key,
+                  connectorOverlays: [
+                    ["Arrow", {width: 10, length: 10, location: 1, id: "arrow",visible: "false"}],
+                    ["Label", {label: labelName, id: "myLabel", cssClass: "connectorLabel",visible: visible, events:{
+                      "click":function (label, evt) {
+                        console.log("clicked on label for connection",label.component);
+                        }
+                      }}]
+                    ]
+                  },
+                  visioConfig.hollowCircle);
+             });
+             $("#"+divID).on("mouseenter", ".jnode-box", function () {
+                  var left = 10,top = 18,right = 10,top=33;
+				  var backgroundColor = $(this).css("background-color");
+				  if (backgroundColor == "rgb(146, 208, 80)"){
+                      var divWidth = $(this).width()/2 - 3;
+                      $(this).append('<i class="fa fa-trash-o" style="position:absolute;color:#fff;left:'+left+'px;top:'+top+'px;z-index:12;"/>');
+				      $(this).append('<i class="fa fa-cog" style="position:absolute;color:#fff;right:'+right+'px;top:'+top+'px;z-index:12;"/>');
+				      $(this).append('<i class="icon-refresh" style="position:absolute;color:#fff;left:'+divWidth+'px;top:'+4+'px;z-index:12;"/>');
+				  }else{
+				      $(this).append('<i class="fa fa-trash-o" style="position:absolute;color:#fff;left:'+left+'px;top:'+top+'px;z-index:12;"/>');
+				      $(this).append('<i class="fa fa-cog" style="position:absolute;color:#fff;right:'+right+'px;top:'+top+'px;z-index:12;"/>');
+				  }
+               }).on("mouseleave", ".jnode-box", function () {
+                  $(".fa-trash-o").remove();
+                  $(".fa-cog").remove();
+                  try{
+                     $(".icon-refresh").remove();
+                  }catch(err){
+                      return
+                  }
+              }).on("mousedown", ".jnode-box", function () {
+                  var div = $(this);
+                  var text = div[0].children[0].innerText;
+                  var new_text = text.replace(/ /g,"-");
+                  $(this)[0].children[0].innerText = new_text;
+              }).on("mouseup", ".jnode-box", function () {
+                  var div = $(this);
+                  var text = div[0].children[0].innerText;
+                  var new_text = text.replace(/-/g," ");
+                  $(this)[0].children[0].innerText = new_text;
+              }).on("click", ".fa-trash-o", function () {
+                  var text = $(this).parent()[0].innerText;
+                  var thisDiv = $(this).parent();
+                  var id = $(this).parent()[0].parentElement.id;
+                  var json = getConnections();
+                  var nodeNo = json[id+"nodeNo"];
+                  layer.confirm(gettext('Are you sure to delete')+'?', {
+                      title: gettext('Delete Confirmation'),
+                      btn: [gettext('Yes'),gettext('No')]
+                      }, function(index){
+                          jsPlumb.removeAllEndpoints(id);
+                          thisDiv.remove();
+                          layer.close(index);
+                          var param = {"name":text,"nodeNo":nodeNo,"divId":id}
+                          $.ajax({
+                            type:'POST',
+                            url:'../deletevariant/',
+                            dataType:'json',
+                            data:param,
+                            success:function(data){
+                            }
+                          })
+                      })
+              }).on("click", ".fa-cog", function () {
+                  var text = $(this).parent()[0].innerText;
+                  var parent_div = $(this).parent()[0];
+                  var id = parent_div.parentElement.id;
+                  var process_id = id;
+                  var color = parent_div.style.borderColor;
+                  if (typeof color != "undefined" && color != null && color != ""){
+                      $("#borderColor").val(color);
+                  }else{
+                      $("#borderColor").val("");
+                  }
+                  parent_div.setAttribute("style","background:#d58512;border:3px solid #d58512;");
+                  try{
+                      var div_id = parent_div.children[0].getAttribute("name");
+                  }catch(err){
+                      var div_id = "";
+                  }
+                  if (div_id != null && div_id != "" && typeof(div_id) != "undefined"){
+                      $.ajax({
+                          type:'POST',
+                          url:'../showprocess/',
+                          dataType:'json',
+                          data:{"selectfile":div_id},
+                          beforeSend:function(){
+                              layer.load(2);
+                          },
+                          success:function(data){
+                              layer.closeAll('loading');
+                              result = data['result'];
+                              if (result == "success"){
+                                  list = data['list'];
+                                  var index = layer.open({
+                                      type: 2,
+                                      title: 'Process Variants(Click submit to insert the existing process)',
+                                      content: '../processvariant/?selectfile='+div_id,
+                                      area: ['320px', '195px'],
+                                      maxmin: true,
+                                      skin: 'process-class',
+                                      btn: ['Submit','Cancel','Update'],
+                                      btn1:function(index, layero){
+                                          var iframeWin = window[layero.find('iframe')[0]['name']];
+                                          var public_list = new Array;
+                                          var list2 = new Array;
+                                          for (var o=0;o<list.length;o++){
+                                            var variant_string = list[o].variant;
+                                            var public_json = {};
+                                            try{
+                                              public_json = eval('(' + variant_string + ')');
+                                            }catch(err){
+                                              public_json = {};
+                                            }
+                                            var id = list[o].source_id;
+                                            if (iframeWin.document.getElementById(id)){
+                                              var div = iframeWin.document.getElementById(id);
+                                              var input_childs = div.getElementsByTagName("input");
+                                              for (var p=0;p<input_childs.length;p++){
+                                                var input_child = input_childs[p];
+                                                var value = input_child.value;
+                                                var name = input_child.name;
+                                                if (name != "" && name != null){
+                                                  public_json[name] = value.toString();
+                                                }
+                                              }
+                                              var select_childs = div.getElementsByTagName("select");
+                                              for (var p=0;p<select_childs.length;p++){
+                                                var select_child = select_childs[p];
+                                                var value = select_child.value;
+                                                var name = select_child.name;
+                                                public_json[name] = value.toString();
+                                              }
+                                              list[o].variant = JSON.stringify(public_json);
+                                              list2.push(JSON.stringify(list[o]));
+                                            }
+                                            json_2_str = JSON.stringify(list[o]);
+                                            public_list.push(json_2_str);
+                                          }
+                                          var connections = getConnections();
+                                          var param = {};
+                                          param['list'] = JSON.stringify(public_list);
+                                          param['list2'] = JSON.stringify(list2);
+                                          param['id'] = process_id;
+                                          param['nodeNo'] = connections[process_id+'nodeNo'];
+                                          param['group'] = div_id;
+                                          $.ajax({
+                                            type:'POST',
+                                            url:'../saveinsertvariant/',
+                                            dataType:'json',
+                                            data:param,
+                                            beforeSend:function(){
+                                              layer.load(2);
+                                            },
+                                            success:function(data){
+                                              layer.closeAll('loading');
+                                              result = data['result'];
+                                              if (result == "success"){
+                                                  layer.msg(gettext('Save Successfully'), {
+                                                    time: 1000,
+                                                    icon:6,
+                                                  });
+                                                  var div = document.getElementById(process_id);
+                                                  div.children[0].setAttribute("style","border:3px solid #d58512");
+                                              }else{
+                                                  layer.msg(gettext('Save Failed'), {
+                                                    time: 1000,
+                                                    icon:5,
+                                                  });
+                                              }
+                                            },
+                                          });
+                                      },
+                                      btn2:function(index, layero){
+                                          cancel(id);
+                                      },
+                                      btn3:function(index, layero){
+                                          var iframeWin = window[layero.find('iframe')[0]['name']];
+                                          var public_list = new Array;
+                                          for (var o=0;o<list.length;o++){
+                                            var variant_string = list[o].variant;
+                                            var public_json = {};
+                                            try{
+                                              public_json = eval('(' + variant_string + ')');
+                                            }catch(err){
+                                              public_json = {};
+                                            }
+                                            var id = list[o].source_id;
+                                            if (iframeWin.document.getElementById(id)){
+                                              var div = iframeWin.document.getElementById(id);
+                                              var input_childs = div.getElementsByTagName("input");
+                                              for (var p=0;p<input_childs.length;p++){
+                                                var input_child = input_childs[p];
+                                                var value = input_child.value;
+                                                var name = input_child.name;
+                                                if (name != "" && name != null){
+                                                  public_json[name] = value.toString();
+                                                }
+                                              }
+                                              var select_childs = div.getElementsByTagName("select");
+                                              for (var p=0;p<select_childs.length;p++){
+                                                var select_child = select_childs[p];
+                                                var value = select_child.value;
+                                                var name = select_child.name;
+                                                public_json[name] = value.toString();
+                                              }
+                                              list[o].variant = JSON.stringify(public_json);
+                                            }
+                                            json_2_str = JSON.stringify(list[o]);
+                                            public_list.push(json_2_str);
+                                          }
+                                          var connections = getConnections();
+                                          var param = {};
+                                          param['list'] = JSON.stringify(public_list);
+                                          param['id'] = process_id;
+                                          param['nodeNo'] = connections[process_id+'nodeNo'];
+                                          param['group'] = div_id;
+                                          $.ajax({
+                                            type:'POST',
+                                            url:'../updateinsertvariant/',
+                                            dataType:'json',
+                                            data:param,
+                                            beforeSend:function(){
+                                              layer.load(2);
+                                            },
+                                            success:function(data){
+                                              layer.closeAll('loading');
+                                              result = data['result'];
+                                              if (result == "success"){
+                                                  layer.msg(gettext('Save Successfully'), {
+                                                    time: 1000,
+                                                    icon:6,
+                                                  });
+                                                  var div = document.getElementById(process_id);
+                                                  div.children[0].setAttribute("style","border:3px solid #d58512");
+                                              }else{
+                                                  layer.msg(gettext('Save Failed'), {
+                                                    time: 1000,
+                                                    icon:5,
+                                                  });
+                                              }
+                                            },
+                                          });
+                                      }
+                                  });
+                                  layer.full(index);
+                              }
+                          }
+                      });
+                  }else{
+                      var type = connections['type'];
+                      var groupID = connections['groupID'];
+                      var groupName = connections['groupName'];
+                      var processName = connections['processName'];
+                      generateTools(id,text,type,groupID,groupName,processName);
+                  }
+              }).on("click", ".icon-refresh", function () {
+                  var text = $(this).parent()[0].innerText;
+                  var thisDiv = $(this).parent();
+                  var id = $(this).parent()[0].parentElement.id;
+                  var divHeight = $("#diagramContainer-main").height();
+                  var index = layer.open({
+                    type: 2,
+                    title: 'Insert Process',
+                    skin: 'layui-layer-lan',
+                    area: ['650px', '600px'],
+                    maxmin: true,
+                    content: '../processdetail/?groupID='+id+"&divHeight="+divHeight,
+                    })
+                  layer.full(index);
+              }).on("dblclick", ".jnode-box",function(){
+                  //鼠标双击
+                  var text = $(this).text();
+                  alert(text);
+              });
+            if (i==0){
+              id1 = divID;
+              direction1 = connections[divID+"source_type"];
+              direction2 = connections[divID+"target_type"];
+            }else{
+              id2 = divID;
+              var c = jsPlumb.connect({
+                anchors: [direction1,direction2,"_jsPlumb_endpoint_anchor"],
+                endpoint: ['Dot', { radius: 2, strokeStyle: '#1e8151',fillStyle: 'transparent',lineWidth: 2}],
+                source: id1,
+                target: id2,
+                hoverPaintStyle: {lineWidth: 2, strokeStyle: "#d58512", outlineWidth: 2, outlineColor: "transparent"},
+                connector: ["Flowchart", {stub: [5, 10], gap: 5, cornerRadius: 5, alwaysRespectStubs: true}],
+                paintStyle:{lineWidth: 2,strokeStyle: '#337ab7',joinstyle: 'round',outlineColor: 'transparent',outlineWidth: 2},
+                overlays: [
+                  ["Arrow",{id:"arrow",length:10,location:1,visible:false,width:10}],
+                  ["Label",{id:"myLabel",name:id2,label:labelName,visible:visible,cssClass:"connectorLabel"}]
+                ],
+              })
+              id1 = id2;
+              direction1 = connections[divID+"source_type"];
+              direction2 = connections[divID+"target_type"];
+              var label = c.getOverlay("myLabel");
+              var canvas = label.canvas;
+              canvas.setAttribute('name',id2);
+              if (labelName != "" && labelName != null && typeof(labelName) != "undefined"){
+                label.setLabel(labelName);
+              }
+            }
+        }
+        var groupID = parent.document.getElementById("group_id").value;
+        if (groupID != "" && groupID != "null" && typeof(groupID) != "undefined"){
+          var div = document.getElementById(groupID);
+          try{
+            div.children[0].setAttribute("style","border:3px solid #ac2925");
+          }catch(err){
+            next;
+          }
+        }
+    }
+    function cancel(divId){
+        $("#header").css('border-width','1px');
+		$("#header").css('background','#EFF4FE');
+		$("#setting-header").css('display','none');
+		document.getElementById("bg").style.display ="none";
+        $("#property").remove();
+        $("#diagramContainer-control").css('display','none');
+        $("#diagramContainer-main").css('width','100%');
+        var div = document.getElementById(divId).children[0];
+        var className = div.className;
+        var color = "";
+        if (className.indexOf("bdc-success") != -1){
+          color = "#4cae4c";
+        }else if(className.indexOf("bdc-primary") != -1){
+          color = "#122b40";
+        }else if(className.indexOf("bdc-warning") != -1){
+          color = "#4F6228";
+        }else if(className.indexOf("bdc-danger") != -1){
+          color = "#ac2925";
+        }else if(className.indexOf("bdc-wait") != -1){
+          color = "#215967";
+        }else if(className.indexOf("bdc-process") != -1){
+          color = "#92D050";
+        }
+        div.setAttribute("style","background"+color);
+        var borderColor = $("#borderColor").val();
+        if(typeof borderColor != "undefined" && borderColor != null && borderColor != ""){
+          div.setAttribute("style","border:3px solid "+borderColor);
+        }
+    }
+  </script>
+  <style>
+    #bg{
+	        display: none;
+	        position: absolute;
+	        top: 0%;
+	        left: 0%;
+	        width: 83%;
+	        height: 100%;
+	        background-color: black;
+	        z-index:1001;
+	        -moz-opacity: 0.3;
+	        opacity:.30;
+	        filter: alpha(opacity=30);
+	    }
+	input[type=checkbox] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            position: relative;
+        }
+
+    input[type=checkbox]:after {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            top: 0;
+            content: " ";
+            background-color: #fff;
+            color: #fff;
+            display: inline-block;
+            visibility: visible;
+            border: 1px solid grey;
+            padding: 0 3px;
+            border-radius: 3px;
+        }
+
+    input[type=checkbox]:checked:after {
+            background-color: #0f97e7;
+            content: "✓";
+            font-size: 12px;
+        }
+    .box {
+            border:2px solid blue;
+            width: 0px;
+            height: 0px;
+            position: absolute;
+            opacity: 0.5;
+        }
+    input{
+		    height: 23px;
+		    border: 1px solid #ccc;
+		    padding: 7px 0px;
+		    border-radius: 3px;
+		    padding-left:5px;
+		    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+		    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+		    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+		    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+		    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s
+	    }
+	input:focus{
+		    border-color: #66afe9;
+		    outline: 0;
+		    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+		    box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)
+	    }
+  </style>
+</head>
+
+<body style="overflow-y: hidden;">
+  <input id="left" style="display:none;">
+  <input id="top" style="display:none;">
+  <input id="width" style="display:none;">
+  <input id="arrange" style="display:none;">
+  <input id="next_left" style="display:none;">
+  <input id="next_top" style="display:none;">
+  <input id="next_width" style="display:none;">
+  <input id="next" style="display:none;">
+  <div id="main" style="height:100%;width:100%;">
+    <div class="container-fluid">
+      <div class="row">
+        <div id="bg"></div>
+        <div class="bg-success min-height" id="diagramContainer-main" style="width:100%;float:left;">
+				<script type="text/x-mustache" id="jnode-template">
+					<div class="jnode-panel" id="{{id}}" style="top:{{top}}px;left:{{left}}px">
+						<div class="jnode-box {{jnodeClass}}">{{jnodeHtml}}</div>
+					</div>
+				</script>
+        </div>
+
+		<div class="col-sm-2 bg-info min-height" id="diagramContainer-control" style="display:none;padding-left:5px;padding-right:5px;float:right;">
+			<h4 class="text-center"><i class="fa fa-gear"></i> Setting</h4>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <script src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+  <script src="../static/javascript/jvisio-flow/lib/uuid.min.js"></script>
+  <script src="../static/javascript/jvisio-flow/lib/mustache.min.js"></script>
+  <script id="jqueryUi"  src="../static/javascript/jvisio-flow/lib/jqueryui/jquery-ui.min.js"></script>
+  <script src="../static/javascript/jvisio-flow/lib/jquery.jsPlumb-1.7.2.js"></script>
+  <script src="../static/javascript/jvisio-flow/jvisio-config.js"></script>
+  <script src="../static/javascript/layer/layui.all.js"></script>
+  <script src="../static/javascript/layer/layer.js"></script>
+  <script src="../static/javascript/jvisio-flow/index.js"></script>
+  <script src="../static/javascript/jvisio-flow/json2.js"></script>
+  <script src="../static/javascript/createTools2.js"></script>
+  <script id="jvisio" src="../static/javascript/jvisio-flow/jvisio-index.js"></script>
+  <script>
+    $(document).ready(function(){
+        var div_height = "{{ div_height }}";
+        $("#diagramContainer-main").height(div_height);
+        $("#diagramContainer-control").height(div_height);
+        var group_id = "{{ group_id }}";
+        var div_name = parent.document.getElementById(group_id).children[0].children[0].getAttribute("name");
+        var process_name = parent.document.getElementById("selectfile").value;
+        if (process_name == "" || process_name == "null" || typeof(process_name) == "undefined"){
+            process_name = "";
+        }
+        $.ajax({
+          type:'POST',
+          url:'../transferdetail/',
+          dataType:'json',
+          data:{"group_id":group_id,"div_name":div_name,"process_name":process_name},
+          success:function(data){
+            drawprocess(data);
+          }
+        })
+    })
+  </script>
+</body>
+</html>

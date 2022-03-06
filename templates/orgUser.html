@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head><meta charset="utf-8">
+<title>{% trans "Account Management" %}</title>
+<link rel="stylesheet" href="../static/style/information/layer.css" />
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<link rel="stylesheet" href="../static/javascript/layer/css/layui.css" />
+<style>
+	.fa-chevron-circle-left{
+		color:#3c8dbc;
+	}
+	.fa-chevron-circle-right{
+		color:#3c8dbc;
+	}
+	.fa-id-card-o{
+		color:#69aa46;
+	}
+</style>
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-header">
+			<div class="box-title">
+				<i class="fa icon-user"></i> {% trans "Account Management" %}
+			</div>
+			{% if 'Draw_Process.views_panel_user_list_menu' in perms %}
+			<div class="box-tools pull-right">
+				{% if 'Draw_Process.views_panel_user_list_menu_search' in perms %}<a href="#" class="btn btn-default" id="btnSearch"><i class="fa fa-filter"></i> {% trans "Search" %}</a>{% endif %}
+				{% if 'Draw_Process.views_panel_user_list_menu_new_user' in perms %}<a  class="btn btn-default" href="#" onclick="NewPage()"><i class="fa fa-plus"></i> {% trans "New User" %}</a>{% endif %}
+				<!--{% if 'Draw_Process.views_panel_user_list_menu_excel' in perms %}-->
+				<!--<div class="btn-group">-->
+					<!--<a href="javascript:" class="btn btn-default dropdown-toggle" data-toggle="dropdown">-->
+						<!--<i class="fa fa-navicon"></i> <span class="caret"></span>-->
+					<!--</a>-->
+					<!--<ul class="dropdown-menu">-->
+						<!--{% if 'Draw_Process.views_panel_user_list_menu_excel_template' in perms %}<li><a href="/exportusertemplate/" id="template"><i class="glyphicon glyphicon-file"></i> {% trans "Template" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_user_list_menu_excel_import' in perms %}<li><a href="#" id="btnImport" onclick="upload()"><i class="glyphicon glyphicon-import"></i> {% trans "Import" %}</a></li>{% endif %}-->
+						<!--{% if 'Draw_Process.views_panel_user_list_menu_excel_export' in perms %}<li><a href="/exportuserlist/" id="btnExport"><i class="glyphicon glyphicon-export"></i> {% trans "Export" %}</a></li>{% endif %}-->
+					<!--</ul>-->
+				<!--</div>-->
+				<!--{% endif %}-->
+			</div>
+			{% endif %}
+		</div>
+		<div class="box-body">
+			<form id="searchForm" action="/orgaccountlist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				{% if 'Draw_Process.views_panel_user_list_menu_search' in perms %}
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "User" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="loginCode" name="loginCode" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Nick Name" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="userName" name="userName" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+                <div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Location" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="location" name="location" value="" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+                </div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Email" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="email" name="email" value="" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+                <div class="form-row"></div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Organization" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="organization" name="organization" value="{{ organization }}" maxlength="300" class="form-control width-120" autocomplete="off"/>
+						{% if readonly == "readonly" %}
+							<script>
+								document.getElementById("organization").readOnly = true;
+							</script>
+						{% endif %}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Company" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="company" name="company" value="" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Department" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="department" name="department" value="" maxlength="300" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Mobile" %}:</label>
+					<div class="control-inline">
+						<input type="text" id="mobile" name="mobile" value="" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				{% endif %}
+			</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/select2.zh_CN.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/information/WdatePicker.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.en.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+// 初始化DataGrid对象
+$('#dataGrid').dataGrid({
+	searchForm: $("#searchForm"),
+	columnModel: [
+		{header:'{% trans "User" %}', name:'username', index:'username', width:140, align:"center", frozen:true, formatter: function(val, obj, row, act){
+			return '<a href="/orgedit/?user='+row.username+'" class="btnList" data-title="{% trans 'Edit User' %}">'+(val||row.id)+'</a>';
+		}},
+		{header:'{% trans "Nick Name" %}', name:'nickname', index:'nickname', width:200, align:"center"},
+		{header:'{% trans "Location" %}', name:'location', index:'location', width:140, align:"center"},
+		{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:200, align:"center"},
+		{header:'{% trans "Company" %}', name:'company', index:'company', width:200, align:"center"},
+		{header:'{% trans "Department" %}', name:'department', index:'department', width:200, align:"center"},
+		{header:'{% trans "IP" %}', name:'ip', index:'ip', width:200, align:"center"},
+		{header:'{% trans "Email" %}', name:'email', index:'email', width:200, align:"center"},
+		{header:'{% trans "Mobile" %}', name:'mobile', index:'mobile', width:200, align:"center"},
+		{header:'{% trans "Phone" %}', name:'phone', index:'phone', width:200, align:"center"},
+		{header:'{% trans "Update Date" %}', name:'update_date', index:'update_date', width:200, align:"center"},
+		{header:'{% trans "Status" %}', name:'status', index:'status', width:140, align:"center", formatter: function(val, obj, row, act){
+			if (val == '{% trans "Normal" %}'){
+				return val;
+			}else{
+				return '<span style="color:#f00;">' + val + '</span>';
+			}
+		}},
+        {header:'{% trans "Operator" %}', name:'operator', index:'operator', width:160, align:"center"},
+		{header:'{% trans "Operation" %}', name:'actions', width:300, sortable:false, title:false, formatter: function(val, obj, row, act){
+			var actions = [];
+				{% if 'Draw_Process.views_panel_user_list_table_edit' in perms %}
+				actions.push('<a href="/orgedit/?user='+row.username+'" class="btnList" title="{% trans 'Edit User' %}" data-click-binded="true"><i class="fa fa-pencil"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_user_list_table_set_license' in perms %}
+				actions.push('<a href="#" onclick=setLicense("'+row.username+'") class="btnList" title="{% trans 'Set License' %}" data-click-binded="true"><i class="fa fa-id-card-o"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_user_list_table_inactive' in perms %}
+				if (row.status == '{% trans "Normal" %}'){
+					actions.push('<a href="javascript:changeStatus('+"'"+row.username+"'"+","+"'"+"{% trans 'Are you sure to inactive this user' %}?"+"'"+');" class="btnList" title="{% trans 'Inactive User' %}" data-click-binded="true"><i class="glyphicon glyphicon-ban-circle"></i></a>&nbsp;');
+				}else{
+					actions.push('<a href="javascript:changeStatus('+"'"+row.username+"'"+","+"'"+"{% trans 'Are you sure to active this user' %}?"+"'"+');" class="btnList" title="{% trans 'Active User' %}" data-click-binded="true"><i class="glyphicon glyphicon-ok-circle"></i></a>&nbsp;');
+				}
+				{% endif %}
+				{% if 'Draw_Process.views_panel_user_list_table_delete' in perms %}
+				actions.push('<a href="#" onclick=deleteAccount("'+row.username+'") class="btnList" title="{% trans 'Delete User' %}" data-click-binded="true"><i class="fa fa-trash-o"></i></a>&nbsp;');
+				{% endif %}
+				{% if 'Draw_Process.views_panel_user_list_table_more' in perms %}
+				actions.push('<a href="javascript:" class="btnMore" title="{% trans 'more operation' %}"><i class="fa fa-chevron-circle-right"></i></a>&nbsp;');
+				actions.push('<div class="moreItems">');
+					{% if 'Draw_Process.views_panel_user_list_table_more_assign_role' in perms %}
+					actions.push('<a href="/usereditassign/?user='+row.username+'" class="btn btn-default btn-xs btnList" title="Assign Role" data-click-binded="true"><i class="fa fa-check-square-o"></i> {% trans "Assign Role" %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_user_list_table_more_permission' in perms %}
+					actions.push('<a href="/usereditpermission/?user='+row.username+'" class="btn btn-default btn-xs btnList" title="Function Permission" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans "Permission" %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_user_list_table_more_folder' in perms %}
+					actions.push('<a href="/userfolderpermission/?user='+row.username+'" class="btn btn-default btn-xs btnList" title="{% trans 'Folder Permission' %}" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans "Folder Permission" %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_user_list_table_more_commander' in perms %}
+					actions.push('<a href="/usercommanderpermission/?user='+row.username+'" class="btn btn-default btn-xs btnList" title="{% trans 'Commander Permission' %}" data-click-binded="true"><i class="fa fa-check-circle-o"></i> {% trans "Commander Permission" %}</a>&nbsp;');
+					{% endif %}
+					{% if 'Draw_Process.views_panel_user_list_table_more_reset_password' in perms %}
+					actions.push('<a href="javascript:resetPwd('+"'"+row.username+"'"+","+"'"+"{% trans 'Are you sure to reset the password?' %}?"+"'"+');" class="btn btn-default btn-xs btnList" title="{% trans 'Reset Password' %}" data-click-binded="true"><i class="fa fa-reply-all"></i> {% trans "Reset Password" %}</a>&nbsp;');
+					{% endif %}
+				actions.push('</div>');
+				{% endif %}
+			return actions.join('');
+		}}
+	],
+	// 加载成功后执行事件
+	ajaxSuccess: function(data){
+	}
+});
+</script>
+<script>
+$("input[type='file']").change(function(){
+  var obj = document.getElementById("open");
+  var path = obj.files[0].name;
+  var data = {"path":path};
+  $("#open").val("");
+  $.ajax({
+    type:'POST',
+    url:'../uploaduser/',
+    dataType:'json',
+    data:data,
+    beforeSend:function(){
+    $('#loading').show();
+    },
+    success:function(data){
+        $('#loading').hide();
+        var msg = data.message;
+        var type = data.type;
+        if (type = "success"){
+            js.showMessage(msg);
+        }else{
+            js.showMessage(msg, null, 'warning');
+        }
+    }
+  });
+})
+</script>
+<script>
+function changeStatus(loginCode,title){
+	layer.confirm(title, {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Change User Status" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../changeuserstatus/',
+			dataType:'json',
+			data:{"loginCode":loginCode},
+			beforeSend:function(){
+				layer.load(1);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data.result;
+				if (result == 'success'){
+					layer.msg('{% trans "Change status successfully" %}!', {icon: 6});
+				}else{
+					var message = data['msg'];
+					layer.msg(message, {icon: 5});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		});
+	})
+}
+
+function resetPwd(loginCode,title){
+	layer.confirm(title, {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Reset Password" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../resetpassword/',
+			dataType:'json',
+			data:{"loginCode":loginCode},
+			beforeSend:function(){
+				layer.load(1);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data.result;
+				if (result == 'success'){
+					var msg = data.message;
+					layer.msg(msg, {icon: 6});
+				}else{
+					var msg = data.message;
+					layer.msg(msg, {icon: 5});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		});
+	})
+}
+
+function deleteAccount(loginCode){
+	layer.confirm('{% trans "Are you sure to delete this account" %}?', {
+		btn: ['{% trans "Yes" %}','{% trans "No" %}'],
+		title: '{% trans "Delete Account" %}',
+	}, function(){
+		$.ajax({
+			type:'POST',
+			url:'../userdelete/',
+			dataType:'json',
+			data:{"loginCode":loginCode},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				var msg = data['message'];
+				if (result == "true"){
+					layer.msg(msg, {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(msg, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				$("#dataGrid").trigger("reloadGrid");
+			}
+		})
+	})
+}
+function NewPage(){
+	window.location.href = "../orguseradd/";
+}
+
+function setLicense(loginCode){
+	layer.prompt({
+        title: '{% trans "License Date" %}',
+        content: '<input id="licenseDateSetting" type="text" class="layui-layer-input" readonly>',
+        formType: 3
+    }, function (enddate, index) {
+		$.ajax({
+			type:'POST',
+			url:'../edituserlicense/',
+			dataType:'json',
+			data:{"loginCode":loginCode,"endDate":enddate},
+			beforeSend:function(){
+				layer.load(2);
+			},
+			success:function(data){
+				layer.closeAll('loading');
+				var result = data['result'];
+				var msg = data['message'];
+				if (result == "true"){
+					layer.msg(msg, {
+						time: 2000,
+						icon:6,
+					});
+				}else{
+					layer.msg(msg, {
+						time: 2000,
+						icon:5,
+					});
+				}
+				layer.close(index);
+			}
+		})
+    })
+    $("#licenseDateSetting").removeAttr("lay-key");
+    var laydate = layui.laydate;
+	{% if language == 'en' %}
+	laydate.render({
+		elem: "#licenseDateSetting",
+		trigger: 'click',
+		lang: 'en'
+	});
+	{% else %}
+	laydate.render({
+		elem: "#licenseDateSetting",
+		trigger: 'click',
+	});
+	{% endif %}
+}
+</script>
+</html>

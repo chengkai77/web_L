@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>{% trans "Release Process" %}</title>
+	<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+    <link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+    <link href="../static/javascript/layer/default/laydate.css" rel="stylesheet">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/javascript/layer/layer.js"></script>
+    <script type="text/javascript" src="../static/javascript/layer/tree.js"></script>
+	<!--<script type="text/javascript" src="../static/javascript/layer/layui.all.js"></script>-->
+    <script type="text/javascript" src="../static/javascript/layer/layui.all.en.js"></script>
+	<script>
+        function reload(treename){
+            if (treename == "tree1"){
+                $.ajax({
+                    type:'POST',
+                    url:'../datalist3/',
+                    dataType:'json',
+                    async : false,
+                    data:{"type":"public"},
+                    success:function(data){
+                        var data_list = data.rows;
+                        var tree = layui.tree
+                        ,layer = layui.layer
+                        ,util = layui.util
+                        tree.render({
+                            elem: '#tree1'
+                            ,id: 'tree1'
+                            ,data: data_list
+                            ,showLine: true
+                            ,spread: false
+                            ,click: function(obj){
+                                var selected_data = obj.data;
+                                var path = selected_data['path'];
+                                var title = selected_data['title'];
+                                if (path.indexOf(".py") == -1){
+                                    return false;
+                                }else{
+                                    $("#selected_file").val(title);
+                                    $("#selected_path").val(path);
+                                    tree.reload('tree1', {
+                                    });
+                                }
+                            },
+                        });
+                    }
+                })
+            }else{
+               $.ajax({
+                    type:'POST',
+                    url:'../datalist3/',
+                    dataType:'json',
+                    async : false,
+                    data:{"type":"release"},
+                    success:function(data){
+                        var data_list = data.rows;
+                        var tree = layui.tree
+                        ,layer = layui.layer
+                        ,util = layui.util
+                        tree.render({
+                            elem: '#tree2'
+                            ,id: 'tree2'
+                            ,data: data_list
+                            ,showLine: true
+                            ,spread: false
+                            ,click: function(obj){
+                                var selected_data = obj.data;
+                                var path = selected_data['path'];
+                                if (path.indexOf(".py") != -1){
+                                    var files = path.split("\\");
+                                    var filepath = files[0];
+                                    for (var i=1;i<files.length-1;i++){
+                                        filepath = filepath + "\\" + files[i];
+                                    }
+                                    $("#selected_folder").val(filepath);
+                                    tree.reload('tree2', {
+                                    });
+                                }else{
+                                    var b = path.substring(path.lastIndexOf('\\'));
+                                    var c = path;
+                                    if (b == "\\"){
+                                       c = path.substring(0,path.lastIndexOf('\\'));
+                                    }
+                                    $("#selected_folder").val(c);
+                                    tree.reload('tree2', {
+                                    });
+                                }
+                            },
+                        });
+                    }
+                })
+            }
+        }
+    </script>
+    <style>
+		.demo-tree-box {
+			width: fit-content;
+			min-width: 200px;
+			padding: 10px;
+			border: 1px solid #ddd;
+			overflow: auto;
+		}
+		.demo-tree {
+			margin: 10px 20px;
+		}
+	</style>
+</head>
+<body>
+	<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+	  <legend>{% trans "Release Process" %}</legend>
+	</fieldset>
+	<div class="layui-form-item">
+        <div class="layui-inline">
+          <label class="layui-form-label"style="min-width:100px;color:#c2c2c2;">{% trans "Public File" %}</label>
+          <div class="layui-input-inline">
+            <input id="selected_file" autocomplete="off" class="layui-input" disabled>
+            <input id="selected_path" style="display:none;">
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="min-width:100px;color:#c2c2c2;">{% trans "Release Folder" %}</label>
+          <div class="layui-input-inline">
+            <input id="selected_folder" autocomplete="off" class="layui-input" value="release" disabled>
+          </div>
+        </div>
+        <div class="layui-inline">
+          <label class="layui-form-label" style="min-width:100px;">{% trans "Folder Name" %}</label>
+          <div class="layui-input-inline">
+            <input id="new_folder" autocomplete="off" class="layui-input">
+          </div>
+        </div>
+  </div>
+	<div id="tree1" class="demo-tree demo-tree-box"></div>
+	<div id="tree2" class="demo-tree demo-tree-box"></div>
+	<script>
+		layui.use(['tree', 'util'], function(){
+			$.ajax({
+				type:'POST',
+				url:'../datalist3/',
+				dataType:'json',
+				async : false,
+				data:{"type":"public"},
+				success:function(data){
+					var data_list = data.rows;
+					var tree = layui.tree
+					,layer = layui.layer
+					,util = layui.util
+					tree.render({
+						elem: '#tree1'
+						,id: 'tree1'
+						,data: data_list
+						,showLine: true
+						,spread: false
+						,click: function(obj){
+							var selected_data = obj.data;
+							var path = selected_data['path'];
+							var title = selected_data['title'];
+							if (path.indexOf(".py") == -1){
+								return false;
+							}else{
+								$("#selected_file").val(title);
+								$("#selected_path").val(path);
+								tree.reload('tree1', {
+								});
+							}
+						},
+					});
+				}
+			})
+			$.ajax({
+				type:'POST',
+				url:'../datalist3/',
+				dataType:'json',
+				async : false,
+				data:{"type":"release"},
+				success:function(data){
+					var data_list = data.rows;
+					var tree = layui.tree
+					,layer = layui.layer
+					,util = layui.util
+					tree.render({
+						elem: '#tree2'
+						,id: 'tree2'
+						,data: data_list
+						,showLine: true
+						,spread: false
+						,click: function(obj){
+							var selected_data = obj.data;
+							var path = selected_data['path'];
+							if (path.indexOf(".py") != -1){
+								var files = path.split("\\");
+								var filepath = files[0];
+                                for (var i=1;i<files.length-1;i++){
+                                    filepath = filepath + "\\" + files[i];
+                                }
+                                $("#selected_folder").val(filepath);
+								tree.reload('tree2', {
+								});
+							}else{
+							    var b = path.substring(path.lastIndexOf('\\'));
+							    var c = path;
+							    if (b == "\\"){
+							       c = path.substring(0,path.lastIndexOf('\\'));
+							    }
+                                $("#selected_folder").val(c);
+								tree.reload('tree2', {
+								});
+							}
+						},
+					});
+				}
+			})
+		});
+	</script>
+</body>
+</html>

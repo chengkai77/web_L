@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+	<meta charset="UTF-8">
+	<title>{% trans "Files" %}</title>
+	<link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="../static/style/EasyUI/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../static/style/EasyUI/icon.css">
+	<script type="text/javascript" src="../static/javascript/jvisio-flow/lib/jquery/jquery.min.js"></script>
+	<script src="../static/javascript/layer/layer.js"></script>
+	<script type="text/javascript" src="../static/javascript/EasyUI/jquery.easyui.min.js"></script>
+    {% if language != 'en' %}
+    <script src="../static/javascript/EasyUI/easyui-lang-zh_CN.js"></script>
+    {% endif %}
+	<script>
+		$(document).ready(function(){
+			$("#which").combobox('setValue',"{{ sequence }}");
+			$("#month_day_selection1").combobox('setValue',"{{ week_day }}");
+			$("#year_month1").combobox('setValue',"{{ month }}");
+			$("#year_month2").combobox('setValue',"{{ month }}");
+			$("#year_month_which").combobox('setValue',"{{ sequence }}");
+			$("#month_day_selection2").combobox('setValue',"{{ week_day }}");
+		})
+
+		function changeSelection(){
+		    changeRange("");
+			var opt=$("input:radio[name='cycle_method']:checked").val();
+			if(opt=="day"){
+				$('#day_selection').css('display','block');
+				$('#week_selection').css('display','none');
+				$('#month_selection').css('display','none');
+				$('#year_selection').css('display','none');
+			}else if(opt=="week"){
+				$('#week_selection').css('display','block');
+				$('#day_selection').css('display','none');
+				$('#month_selection').css('display','none');
+				$('#year_selection').css('display','none');
+			}else if(opt=="month"){
+				$('#month_selection').css('display','block');
+				$('#day_selection').css('display','none');
+				$('#week_selection').css('display','none');
+				$('#year_selection').css('display','none');
+			}else if(opt=="year"){
+				$('#year_selection').css('display','block');
+				$('#day_selection').css('display','none');
+				$('#week_selection').css('display','none');
+				$('#month_selection').css('display','none');
+			}
+		}
+
+        function changeMonthSelection(){
+            var opt=$("input:radio[name='month_cycle_method']:checked").val();
+            if(opt=="every_day"){
+<!--                var month2 = $("#month_cycle2").val();-->
+<!--                $("#month_cycle1").textbox("setValue", month2);-->
+                $("#which").combobox('setValue',"{{ sequence }}");
+                $("#month_day_selection1").combobox('setValue',"{{ week_day }}");
+            }else{
+<!--                var month1 = $("#month_cycle1").val();-->
+<!--                $("#month_cycle2").textbox("setValue", month1);-->
+                $("#month_day").textbox("setValue", "{{day}}");
+            }
+        }
+
+        function changeYearSelection(){
+            var opt=$("input:radio[name='year_method']:checked").val();
+            if(opt=="year_day"){
+                var month2 = $("#year_month2").combobox('getValue');
+                $("#year_month1").combobox('setValue',month2);
+                $("#year_month_which").combobox('setValue',"{{ sequence }}");
+			    $("#month_day_selection2").combobox('setValue',"{{ week_day }}");
+            }else{
+                var month1 = $("#year_month1").combobox('getValue');
+                $("#year_month2").combobox('setValue',month1);
+                $("#year_day").textbox("setValue", "{{day}}");
+            }
+        }
+
+        function addDate(date,days){
+            var d=new Date(date);
+            d.setDate(d.getDate()+days);
+            var m=d.getMonth()+1;
+            var day=d.getDate();
+            return d.getFullYear()+'-'+(m<10?('0'+m):m)+'-'+(day<10?('0'+day):day);
+        }
+
+        function addMonth(date,months){
+            var date = new Date(date);//比如sourceDate传参“2019-03-31”
+            var oldDate = date.getDate();//获取原来的月有多少日
+            date.setDate(1);//设置为1日（day）
+            date.setMonth(date.getMonth() +months);//设置新的月份(从0开始)  months 传参-1
+            var newDay= new Date(date.getYear(), date.getMonth()+1, 0).getDate();//获取新得到的月有多少日
+            date.setDate(Math.min(oldDate, newDay));
+            var m = date.getMonth()+1;
+            var d = date.getDate();
+            return date.getFullYear()+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+        }
+
+        function addYear(date,years){
+            var date = new Date(date);
+            var oldDate = date.getDate();//获取原来的月有多少日
+            date.setFullYear(date.getFullYear()+years);
+            var newDay= new Date(date.getYear(), date.getMonth()+1, 0).getDate();//获取新得到的月有多少日
+            date.setDate(Math.min(oldDate, newDay));
+            var m = date.getMonth()+1;
+            var d = date.getDate();
+            return date.getFullYear()+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+        }
+
+        function changeRange(date) {
+            if (date == "") {
+                date = new Date($("#range_date1").val());
+            }
+            var range1 = date;
+            var times = parseInt($("#repeat_time").val());
+            if (times != "") {
+                var cycle_method = $("input[name='cycle_method']:checked").val();
+                if (cycle_method == "day") {
+                    var range2 = addDate(range1, times - 1);
+                    $("#range_date2").textbox("setValue", range2);
+                } else if (cycle_method == "week") {
+                    var select_list = new Array;
+                    $("input:checkbox[name=week_selection_cbx]:checked").each(function(index, obj) {
+                        select_list.push($(obj).val());
+                    });
+                    select_str = select_list.toString();
+                    var days = range1.getDay();
+                    if (days == 2) {
+                        if (select_str.indexOf('monday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 3) {
+                        if (select_str.indexOf('monday') != -1 || select_str.indexOf('tuesday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 4) {
+                        if (select_str.indexOf('monday') != -1 || select_str.indexOf('tuesday') != -1 || select_str.indexOf('wednesday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 5) {
+                        if (select_str.indexOf('monday') != -1 || select_str.indexOf('tuesday') != -1 || select_str.indexOf('wednesday') != -1 || select_str.indexOf('thursday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 6) {
+                        if (select_str.indexOf('monday') != -1 || select_str.indexOf('tuesday') != -1 || select_str.indexOf('wednesday') != -1 || select_str.indexOf('thursday') != -1 || select_str.indexOf('friday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 0) {
+                        if (select_str.indexOf('monday') != -1 || select_str.indexOf('tuesday') != -1 || select_str.indexOf('wednesday') != -1 || select_str.indexOf('thursday') != -1 || select_str.indexOf('friday') != -1 || select_str.indexOf('saturday') != -1) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else if (days == 1) {
+                        times = times - 1;
+                    }
+                    var range2 = addDate(range1, times * 7);
+                    $("#range_date2").textbox("setValue", range2);
+                } else if (cycle_method == "month") {
+                    var days1 = range1.getDate();
+                    var days2 = parseInt($("#month_day").val());
+<!--                    var month_cycle = parseInt($("#month_cycle1").val());-->
+                    if (days1 > days2) {
+                        times = times;
+                    } else {
+                        times = times - 1;
+                    }
+                    var range2 = addMonth(range1, times);
+                    $("#range_date2").textbox("setValue", range2);
+                } else {
+                    var days1 = range1.getDate();
+                    var days2 = parseInt($("#year_day").val());
+<!--                    var year_cycle = parseInt($("#year_mode_years").val())-->
+                    var month1 = range1.getMonth() + 1;
+                    var month2 = parseInt($("#year_month1").combobox('getValue'));
+                    if (month1 > month2) {
+                        times = times;
+                    } else if (month1 == month2) {
+                        if (days1 > days2) {
+                            times = times;
+                        } else {
+                            times = times - 1;
+                        }
+                    } else {
+                        times = times * year_cycle - 1;
+                    }
+                    var range2 = addYear(range1, times);
+                    $("#range_date2").textbox("setValue", range2);
+                }
+            }
+        }
+
+        function getSelection(){
+            var result = {};
+            var cycle_range_mode = $("input:radio[name='range_repeat']:checked").val(); //获取重复范围模式
+            result['cycle_range_mode'] = cycle_range_mode;
+            var start_date = $("#range_date1").val(); //获取开始日期
+            result['start_date'] = start_date;
+            if(cycle_range_mode == "time"){ //如果模式为重复次数
+                var times = $("#repeat_time").val(); //获取重复的次数
+                result['times'] = times;
+            }else{ //为设置结束日期模式
+                var end_date = $("#range_date2").val(); //获取结束日期
+                result['end_date'] = end_date;
+            }
+            var opt = $("input:radio[name='cycle_method']:checked").val(); //获取定期模式
+            result['cycle_mode'] = opt;
+            if(opt=="day"){ //如果模式为按天
+				var day_mode = $("input:radio[name='day_cycle_method']:checked").val(); //获取定期选项
+				result['day_mode'] = day_mode;
+				if(day_mode=="every_day"){ //每天模式
+				    var day_mode_interval = $("#day_mode_days").val(); //获取每隔多少天值
+				    result['day_mode_interval'] = day_mode_interval;
+				}
+			}else if(opt=="week"){ //如果模式为按周
+				var week_mode_interval = $("#week_mode_weeks").val(); //获取间隔的周的值
+				result['week_mode_interval'] = week_mode_interval;
+				var select_list = new Array;
+                $("input:checkbox[name=week_selection_cbx]:checked").each(function(index, obj) { //获取选中的星期，返回数据集
+                    select_list.push($(obj).val());
+                });
+                result['week_mode_selection'] = select_list;
+			}else if(opt=="month"){ //如果模式为按月
+				var month_mode = $("input:radio[name='month_cycle_method']:checked").val(); //获取定期选项
+				result['month_mode'] = month_mode;
+				if(month_mode=="every_day"){ //每个月的第几天的模式
+<!--				    var month_mode_month = $("#month_cycle1").val(); //获取间隔的月的值-->
+				    var month_mode_day = $("#month_day").val(); //获取月份的第几天
+<!--				    result['month'] = month_mode_month;-->
+				    result['cycle_day'] = month_mode_day;
+				}else{ //每个月的第几个周几模式
+<!--                    var month_mode_month = $("#month_cycle2").val(); //获取间隔的月的值-->
+                    var sequence = $("#which").combobox('getValue'); //获取月份的第几个值
+                    var weekday = $("#month_day_selection1").combobox('getValue'); //获取月份的周几的值
+<!--                    result['month'] = month_mode_month;-->
+				    result['weekday'] = weekday;
+				    result['cycle_sequence'] = sequence;
+				}
+			}else if(opt=="year"){ //如果模式为按年
+<!--				var year_mode_interval = $("#year_mode_years").val(); //获取间隔的年的值-->
+<!--				result['year'] = year_mode_interval;-->
+                var year_mode = $("input:radio[name='year_method']:checked").val(); //获取定期选项
+                result['year_mode'] = year_mode;
+                if(year_mode=="year_day"){ //每个月的第几天的模式
+			        var month = $("#year_month1").combobox('getValue'); //获取月份
+			        var day = $("#year_day").val(); //获取天数
+			        result['month'] = month;
+			        result['cycle_day'] = day;
+			    }else{ //每个月的第几个周几模式
+                    var month = $("#year_month2").combobox('getValue'); //获取月份
+                    var sequence = $("#year_month_which").combobox('getValue'); //获取第几个的值
+                    var weekday = $("#month_day_selection2").combobox('getValue'); //获取星期几
+                    result['month'] = month;
+			        result['weekday'] = weekday;
+			        result['cycle_sequence'] = sequence;
+			    }
+			}
+			return result;
+        }
+	</script>
+	<style>
+		.radiobutton {
+			border: 2px solid #5FB878;
+		}
+		.radiobutton-inner {
+			background: #5FB878;
+		}
+		.checkbox {
+			border: 2px solid #5FB878;
+		}
+		.checkbox-inner {
+			background: #5FB878;
+		}
+	</style>
+</head>
+<body>
+    <div style="margin:20px 0;"></div>
+    <div class="easyui-layout" style="width:700px;height:350px;">
+        <!--<div data-options="region:'north'" style="height:50px"></div>-->
+        <div data-options="region:'south',split:true" title='{% trans "Range of recurrence" %}' style="height:140px;">
+			<form id="cr">
+				<div style="margin:12px 0px 10px 10px;">
+					<span>{% trans "Start: " %}</span>
+					<input id="range_date1" class="easyui-datebox" value="{{date1}}" label=" " labelPosition="after" labelWidth="20px" data-options="formatter:myformatter,parser:myparser" style="width:160px;">
+					<input class="easyui-radiobutton" name="range_repeat" value="time" label='{% trans "End after:" %}' labelAlign="left" labelPosition="after" labelWidth="70" checked="true">
+					<input id="repeat_time" class="easyui-textbox" label='{% trans "occurrences" %}' labelPosition="after" labelWidth="120" style="width:170px;" value="10">
+				</div>
+				<div style="margin:0px 0px 20px 220px;">
+					<input class="easyui-radiobutton" name="range_repeat" value="end" label='{% trans "End by:" %}' labelAlign="left" labelPosition="after" labelWidth="100px" >
+					<input id="range_date2" class="easyui-datebox" value="{{date2}}" data-options="formatter:myformatter,parser:myparser" style="width:160px;">
+				</div>
+				<script type="text/javascript">
+					$(function(){
+                        $('#range_date1').datebox().datebox('calendar').calendar({
+                            validator: function(date){
+                                var now = new Date();
+                                var d1 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                return d1<=date;
+                            }
+                        });
+                        $('#range_date1').datebox({
+                            onSelect: function(date){
+                                changeRange(date);
+                            }
+                        });
+                        $('#range_date2').datebox().datebox('calendar').calendar({
+                            validator: function(date){
+                                var now = new Date();
+                                var d1 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                return d1<=date;
+                            }
+                        });
+                    });
+					function myformatter(date){
+						var y = date.getFullYear();
+						var m = date.getMonth()+1;
+						var d = date.getDate();
+						return y+'-'+(m<10?('0'+m):m)+'-'+(d<10?('0'+d):d);
+					}
+					function myparser(s){
+						if (!s) return new Date();
+						var ss = (s.split('-'));
+						var y = parseInt(ss[0],10);
+						var m = parseInt(ss[1],10);
+						var d = parseInt(ss[2],10);
+						if (!isNaN(y) && !isNaN(m) && !isNaN(d)){
+							return new Date(y,m-1,d);
+						} else {
+							return new Date();
+						}
+					}
+				</script>
+			</form>
+		</div>
+        <div data-options="region:'west',split:true" title='{% trans "Periodic pattern" %}' style="width:150px;">
+			<form id="cm">
+				<div style="margin:10px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="cycle_method" value="day" label='{% trans "Daily" %}' labelAlign="left" labelPosition="after" data-options="onChange:changeSelection">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="cycle_method" value="week" label='{% trans "Weekly" %}' labelAlign="left" labelPosition="after" checked="true" data-options="onChange:changeSelection">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="cycle_method" value="month" label='{% trans "Monthly" %}' labelAlign="left" labelPosition="after" data-options="onChange:changeSelection">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="cycle_method" value="year" label='{% trans "Yearly" %}' labelAlign="left" labelPosition="after" data-options="onChange:changeSelection">
+				</div>
+			</form>
+		</div>
+        <div data-options="region:'center'" title='{% trans "periodic option" %}'>
+			<form id="day_selection" style="display:none;">
+				<div style="margin:20px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="day_cycle_method" value="every_day" label='{% trans "Every" %}' labelAlign="left" labelPosition="after" labelWidth="45px" checked="true">
+					<input id="day_mode_days" class="easyui-textbox" label='{% trans "day(s)" %}' labelPosition="after" style="width:120px;" value="1">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="day_cycle_method" value="every_working_day" label='{% trans "Every weekday" %}' labelAlign="left" labelPosition="after" labelWidth="140px" >
+				</div>
+			</form>
+			<form id="week_selection">
+				<div style="margin:20px 0px 20px 10px;">
+					<span>{% trans "Recur every" %}</span>
+					<input id="week_mode_weeks" class="easyui-textbox" label='{% trans "week(s) on: " %}' labelPosition="after" labelWidth="100" style="width:150px;" value="1">
+				</div>
+				<div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx0" name="week_selection_cbx" value="monday" label='{% trans "Monday" %}' labelWidth="100" labelPosition="after">
+                </div>
+                <div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx1" name="week_selection_cbx" value="tuesday" label='{% trans "Tuesday" %}' labelWidth="100" labelPosition="after">
+                </div>
+                <div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx2" name="week_selection_cbx" value="wednesday" label='{% trans "Wednesday" %}' labelWidth="100" labelPosition="after">
+                </div>
+				<div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx3" name="week_selection_cbx" value="thursday" label='{% trans "Thursday" %}' labelWidth="100" labelPosition="after">
+                </div>
+				<div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx4" name="week_selection_cbx" value="friday" label='{% trans "Friday" %}' labelWidth="100" labelPosition="after">
+                </div>
+				<div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx5" name="week_selection_cbx" value="saturday" label='{% trans "Saturday" %}' labelWidth="100" labelPosition="after">
+                </div>
+				<div style="margin:0px 0px 20px 10px;float:left">
+                	<input class="easyui-checkbox" id="week_selection_cbx6" name="week_selection_cbx" value="sunday" label='{% trans "Sunday" %}' labelPosition="after" labelWidth="100">
+                </div>
+				<script>
+					$("#week_selection_cbx" + "{{ week_day_val }}").checkbox({
+						checked: true
+					});
+				</script>
+			</form>
+			<form id="month_selection" style="display:none;">
+				<div style="margin:20px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="month_cycle_method" value="every_day" label='{% trans "Every month's" %}' labelAlign="left" labelPosition="after" labelWidth="90" checked="true" data-options="onChange:changeMonthSelection">
+					<input id="month_day" class="easyui-textbox" label='{% trans "day" %}' labelPosition="after" style="width:120px;" value="{{day}}">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input class="easyui-radiobutton" name="month_cycle_method" value="every_working_day" label='{% trans "Every month" %}' labelAlign="left" labelPosition="after" labelWidth="90" data-options="onChange:changeMonthSelection">
+<!--					<input id="month_cycle2" class="easyui-textbox" label='{% trans "Months" %}' labelPosition="after" style="width:120px;" value="1">-->
+					<select id="which" class="easyui-combobox" name="which" style="width:120px;">
+						<option value="1">{% trans "First" %}</option>
+						<option value="2">{% trans "Second" %}</option>
+						<option value="3">{% trans "Third" %}</option>
+						<option value="4">{% trans "Forth" %}</option>
+						<option value="last">{% trans "Last" %}</option>
+					</select>
+					<select id="month_day_selection1" class="easyui-combobox" name="month_day_selection1" style="width:120px;">
+						<option value="day">{% trans "day " %}</option>
+						<option value="workingday">{% trans "working day" %}</option>
+						<option value="weekend">{% trans "weekend" %}</option>
+						<option value="sunday">{% trans "Sunday" %}</option>
+						<option value="monday">{% trans "Monday" %}</option>
+						<option value="tuesday">{% trans "Tuesday" %}</option>
+						<option value="wednesday">{% trans "Wednesday" %}</option>
+						<option value="thursday">{% trans "Thursday" %}</option>
+						<option value="friday">{% trans "Friday" %}</option>
+						<option value="saturday">{% trans "Saturday" %}</option>
+					</select>
+				</div>
+			</form>
+			<form id="year_selection" style="display:none;">
+<!--				<div style="margin:20px 0px 20px 10px;">-->
+<!--					<span>{% trans "repeat every" %}</span>-->
+<!--					<input id="year_mode_years" class="easyui-textbox" label='{% trans "years later: " %}' labelPosition="after" style="width:120px;" value="1">-->
+<!--				</div>-->
+				<div style="margin:20px 0px 20px 10px;">
+					<input id="year_cycle1" class="easyui-radiobutton" name="year_method" value="year_day" label='{% trans "On:" %}' labelAlign="left" labelPosition="after" labelWidth="55" checked="true" data-options="onChange:changeYearSelection">
+					<select id="year_month1" class="easyui-combobox" name="year_month1" style="width:120px;">
+						<option value="1">{% trans "January" %}</option>
+						<option value="2">{% trans "February" %}</option>
+						<option value="3">{% trans "March" %}</option>
+						<option value="4">{% trans "April" %}</option>
+						<option value="5">{% trans "May" %}</option>
+						<option value="6">{% trans "June" %}</option>
+						<option value="7">{% trans "July" %}</option>
+						<option value="8">{% trans "August" %}</option>
+						<option value="9">{% trans "September" %}</option>
+						<option value="10">{% trans "October" %}</option>
+						<option value="11">{% trans "November" %}</option>
+						<option value="12">{% trans "December" %}</option>
+					</select>
+					<input id="year_day" class="easyui-textbox" style="width:50px;" value="{{day}}">
+				</div>
+				<div style="margin:0px 0px 20px 10px;">
+					<input id="year_cycle2" class="easyui-radiobutton" name="year_method" value="year_day_of_week" label='{% trans "On the:" %}' labelAlign="left" labelPosition="after" labelWidth="70" data-options="onChange:changeYearSelection">
+					<select id="year_month2" class="easyui-combobox" name="year_month2" style="width:120px;">
+						<option value="1">{% trans "January" %}</option>
+						<option value="2">{% trans "February" %}</option>
+						<option value="3">{% trans "March" %}</option>
+						<option value="4">{% trans "April" %}</option>
+						<option value="5">{% trans "May" %}</option>
+						<option value="6">{% trans "June" %}</option>
+						<option value="7">{% trans "July" %}</option>
+						<option value="8">{% trans "August" %}</option>
+						<option value="9">{% trans "September" %}</option>
+						<option value="10">{% trans "October" %}</option>
+						<option value="11">{% trans "November" %}</option>
+						<option value="12">{% trans "December" %}</option>
+					</select>
+                    <select id="year_month_which" class="easyui-combobox" name="year_month_which" style="width:120px;">
+						<option value="1">{% trans "First" %}</option>
+						<option value="2">{% trans "Second" %}</option>
+						<option value="3">{% trans "Third" %}</option>
+						<option value="4">{% trans "Forth" %}</option>
+						<option value="last">{% trans "Last" %}</option>
+					</select>
+					<select id="month_day_selection2" class="easyui-combobox" name="month_day_selection2" style="width:120px;">
+						<option value="day">{% trans "day " %}</option>
+						<option value="workingday">{% trans "working day" %}</option>
+						<option value="weekend">{% trans "weekend" %}</option>
+						<option value="sunday">{% trans "Sunday" %}</option>
+						<option value="monday">{% trans "Monday" %}</option>
+						<option value="tuesday">{% trans "Tuesday" %}</option>
+						<option value="wednesday">{% trans "Wednesday" %}</option>
+						<option value="thursday">{% trans "Thursday" %}</option>
+						<option value="friday">{% trans "Friday" %}</option>
+						<option value="saturday">{% trans "Saturday" %}</option>
+					</select>
+				</div>
+			</form>
+        </div>
+    </div>
+
+</body>
+</html>

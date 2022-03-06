@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<html translate="no">
+<head>
+<meta charset="utf-8" />
+<title>{% trans "New Company" %}</title>
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/javascript/layer/default/layer.css">
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/zTreeStyle.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css" />
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css" />
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+<script>
+function checkCompany(){
+    var company = $("#company").val();
+    $.ajax({
+        type:'POST',
+        url:'../checkcompany/',
+        dataType:'json',
+        async : false,
+        data:{"company":company},
+        success:function(data){
+            var result = data.result;
+            if (result == "exist"){
+                var message = data.msg;
+                layer.tips(message,'#company',{tips:[1,'#ff6969']});
+            }
+            return false;
+        }
+    })
+}
+</script>
+</head>
+<body class="hold-transition ">
+  <input id="selectUrl" style="display:none;" />
+  <div class="wrapper">
+   <div class="main-content">
+    <div class="box box-main">
+     <div class="box-header with-border">
+      <div class="box-title">
+       <i class="fa fa-fw icon-fire"></i> {% trans "New Company" %}
+      </div>
+      <div class="box-tools pull-right">
+       <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+      </div>
+     </div>
+     <form id="inputForm" action="" method="post" class="form-horizontal">
+      <div class="box-body">
+       <div class="row">
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Organization" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            {% if readonly != "readonly" %}<div class="input-group treeselect" id="officeNameDiv" data-url="/organizationselect/">{% endif %}
+            <input id="officeName" type="text" name="officeName" value="{{ organization }}" class="form-control required " autocomplete="off" />
+            {% if readonly != "readonly" %}<span class="input-group-btn"><a id="officeNameButton" href="javascript:" class="btn btn-default "><i class="fa fa-search"></i></a></span></div>{% endif %}
+           <script>
+           {% if readonly == "readonly" %}
+           document.getElementById("officeName").readOnly = true;
+           {% else %}
+           $("#officeNameButton,#officeName").click(function(){
+               $("#selectUrl").val($('#officeNameDiv').attr('data-url'));
+               if ($("#officeNameButton").hasClass("disabled")){
+                   return true;
+               }
+               var options = {
+                   type: 2,
+                   maxmin: true,
+                   shadeClose: true,
+                   title: '{% trans "Organization Selection" %}',
+                   area: ['300px', '400px'],
+                   content: "/treeselect/",
+                   contentFormData: {
+                       checkbox: 'false',
+                       expandLevel: '-1',
+                       isReturnValue: 'false'
+                   },
+                   success: function(layero, index){
+                       if ($(layer.window).width() < 300
+                           || $(layer.window).height() < 400){
+                           layer.full(index);
+                       }
+                   },
+                   btn: ['<i class="fa fa-check"></i> {% trans "Submit" %}'],
+                   btn1: function(index, layero){
+                       var win = layer.iframeWindow(index);
+                       var keyword = win.$('#keyword').val();
+                       $("#officeName").val(keyword);
+                   }
+               };
+               options.btn.push('<i class="fa fa-close"></i> {% trans "Close" %}');
+               options['btn'+options.btn.length] = function(index, layero){
+                   if(typeof treeselectCallback == 'function'){
+                       treeselectCallback('organization', 'cancel', index, layero);
+                   }
+               };
+               layer.open(options);
+           });
+           {% endif %}
+           </script>
+<!--            <input id="officeName" type="text" name="officeName" value="{{ organization }}" readonly="readonly" class="form-control required " autocomplete="off" />-->
+          </div>
+         </div>
+        </div>
+        <div class="col-xs-6">
+         <div class="form-group">
+          <label class="control-label col-sm-4" title=""> <span class="required ">*</span> {% trans "Company" %}:<i class="fa icon-question hide"></i></label>
+          <div class="col-sm-8">
+            <input id="company" type="text" name="company" class="form-control required " maxlength="100" onBlur="checkCompany()"  autocomplete="off" />
+          </div>
+          </div>
+         </div>
+        </div>
+        <div class="row">
+         <div class="col-xs-12">
+          <div class="form-group">
+           <label class="control-label col-sm-2" title=""> <span class="required hide">*</span> {% trans "Comments" %}:<i class="fa icon-question hide"></i></label>
+           <div class="col-sm-10">
+            <textarea id="remarks" name="remarks" rows="4" maxlength="500" class="form-control"></textarea>
+          </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      <div class="box-footer">
+       <div class="row">
+        <div class="col-sm-offset-2 col-sm-10">
+         <button type="submit" class="btn btn-sm btn-primary" id="btnSubmit"><i class="fa fa-check"></i> {% trans "Save" %}</button>&nbsp;
+         <button type="button" class="btn btn-sm btn-default" id="btnCancel" onclick="javascript:history.back(-1);"><i class="fa fa-reply-all"></i> {% trans "Back" %}</button>
+        </div>
+       </div>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div>
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/layer.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/jquery.ztree.all-3.5.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/jquery.validate.js"></script>
+<script src="../static/javascript/information/messages_zh_CN.js"></script>
+<script src="../static/javascript/information/jquery.validate.extend.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if language == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+$("#inputForm").validate({
+	submitHandler: function(form){
+		layer.load(1);
+		var organization = $('#officeName').val();
+		var company = $('#company').val();
+		var remarks = $('#remarks').val();
+		$.ajax({
+            type:'POST',
+            url:'../createcompany/',
+            dataType:'json',
+            data:{"organization":organization,"company":company,"remarks":remarks},
+            success:function(data){
+                layer.closeAll('loading');
+                var result = data['result'];
+                if (result == 'success'){
+                    layer.msg('{% trans "Create successfully" %}!', {icon: 6});
+                }else{
+                    var message = data['msg'];
+                    layer.msg(message, {icon: 5});
+                }
+            }
+		})
+    }
+});
+</script>
+</body>
+</html>

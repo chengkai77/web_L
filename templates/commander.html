@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html translate="no">
+<head><meta charset="utf-8">
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<title>{% trans "Commander" %}</title>
+<link href="../static/javascript/layer/default/layer.css" rel="stylesheet">
+<link href="../static/javascript/layer/default/layui.css" rel="stylesheet">
+<link href="../static/style/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="../static/style/information/font-icons/font-icons.min.css" />
+<link rel="stylesheet" href="../static/style/information/bootstrap/bootstrap.min.css" />
+<link rel="stylesheet" href="../static/style/information/select2.css" />
+<link rel="stylesheet" href="../static/style/information/grey.css" />
+<link rel="stylesheet" href="../static/style/information/ui.jqgrid.css">
+<link rel="stylesheet" href="../static/style/information/AdminLTE.min.css">
+<link rel="stylesheet" href="../static/style/information/jeesite.css" />
+
+<style>
+	.ui-jqgrid .ui-userdata {
+		height: 25px;
+	}
+	.ui-jqgrid .actions>a i.fa-play-circle-o{
+		color: #69aa46;
+	}
+</style>
+</head><body class="hold-transition ">
+<div class="wrapper"><div class="main-content">
+	<div class="box box-main">
+		<div class="box-body">
+			<form id="searchForm" action="/commanderlist/" method="post" class="form-inline " data-page-no="" data-page-size="" data-order-by="">
+				{% csrf_token %}
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Robot Name:" %}</label>
+					<div class="control-inline">
+						<input type="text" id="robotName" name="robotName" value="{{ robotName }}" maxlength="100" class="form-control width-120" autocomplete="off"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="control-label" style="min-width:100px;">{% trans "Status:" %}</label>
+					<div class="control-inline" style="width:80px;">
+						<select id="robotStatus" name="robotStatus" class="form-control width-120">
+							<option value="" selected>&nbsp;</option>
+							<option value="1">{% trans "off-line" %}</option>
+							<option value="2">{% trans "idle" %}</option>
+                            <option value="3">{% trans "busy" %}</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<button type="submit" class="btn btn-primary btn-sm">{% trans "Submit" %}</button>
+					<button type="reset" class="btn btn-default btn-sm">{% trans "Reset" %}</button>
+				</div>
+				</form>
+			<table id="dataGrid"></table>
+			<div id="dataGridPage"></div>
+			<input id="reload" style="display:none;" value="no">
+		</div>
+	</div>
+</div>
+</div>
+
+<a id="scroll-up" href="#" class="btn btn-sm"><i class="fa fa-angle-double-up"></i></a>
+</body>
+<script src="../static/javascript/jquery-1.12.4.min.js"></script>
+<script src="../static/javascript/information/jquery-migrate-1.4.1.min.js"></script>
+<!--[if lt IE 9]><script src="../static/javascript/information/h5fix.min.js"></script><![endif]-->
+<script src="../static/javascript/bootstrap.min.js"></script>
+<script src="../static/javascript/information/select2.js"></script>
+<script src="../static/javascript/information/select2.zh_CN.js"></script>
+<script src="../static/javascript/layer/layer.js"></script>
+<script src="../static/javascript/layer/layui.all.js"></script>
+<script src="../static/javascript/layer/layui.all.en.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.js"></script>
+<script src="../static/javascript/information/jquery.jqGrid.extend.js"></script>
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite.js"></script>
+{% if LANGUAGE_CODE == 'en' %}
+<script src="../static/javascript/information/jeesite_en.js"></script>
+<script src="../static/javascript/information/en.js"></script>
+{% else %}
+<script src="../static/javascript/information/zh_CN.js"></script>
+<script src="../static/javascript/information/jeesite_zh_CN.js"></script>
+{% endif %}
+<script>
+	// 初始化DataGrid对象
+	$('#dataGrid').dataGrid({
+		searchForm: $("#searchForm"),
+		columnModel: [
+			{header:'{% trans "Robot Name" %}', name:'robot_name', index:'robot_name', width:120, align:"center", frozen:true},
+			{header:'{% trans "Status" %}', name:'robot_status', index:'robot_status', width:120, align:"center"},
+			{header:'{% trans "File Path" %}', name:'file_path', index:'file_path', width:200, align:"center"},
+			{header:'{% trans "Nick Name" %}', name:'nick_name', index:'nick_name', width:120, align:"center"},
+			{header:'{% trans "Organization" %}', name:'organization', index:'organization', width:120, align:"center"},
+			{header:'{% trans "Company" %}', name:'company', index:'company', width:200, align:"center"},
+			{header:'{% trans "Department" %}', name:'department', index:'department', width:120, align:"center"},
+			{header:'{% trans "Finished Tasks" %}', name:'finished_tasks', index:'finished_tasks', width:120, align:"center", sortable:false, formatter: function(val, obj, row, act){
+				return '<a href="/finishedschedule/?robot='+row.robot_name+'" class="btnList">'+val+'</a>';
+			}},
+			{header:'{% trans "Booked Tasks" %}', name:'booked_tasks', index:'booked_tasks', width:120, align:"center", sortable:false, formatter: function(val, obj, row, act){
+				return '<a href="/bookedschedule/?robot='+row.robot_name+'" class="btnList">'+val+'</a>';
+			}},
+			{header:'{% trans "Operation" %}', name:'actions', width:120, sortable:false, title:false, formatter: function(val, obj, row, act){
+			    var actions = [];
+			    if (row.assign == 1){
+			    	actions.push('<a href="#" class="btnList" onclick=assignTask('+"'"+row.robot_name+"'"+","+"'"+row.robot_status+"'"+') title={% trans "Assign Task" %} data-click-binded="true"><i class="fa fa-play-circle-o"></i></a>&nbsp;');
+			    }
+			    if (row.schedule == 1){
+			    	actions.push('<a href="#" class="btnList" onclick=scheduleTask('+"'"+row.robot_name+"'"+","+"'"+row.robot_status+"'"+') title={% trans "Schedule Task" %} data-click-binded="true"><i class="fa fa-clock-o"></i></a>&nbsp;');
+			    }
+                return actions.join('');
+            }},
+		],
+		// 加载成功后执行事件
+		ajaxSuccess: function(data){
+		}
+	});
+
+	function assignTask(robotName,robotStatus){
+		if (robotStatus == '{% trans "off-line" %}'){
+			layer.msg('{% trans "This robot is offline!" %}', {icon: 5});
+			return false;
+		}else if(robotStatus == '{% trans "busy" %}'){
+			layer.msg('{% trans "This robot is busy!" %}', {icon: 5});
+			return false;
+		}else{
+			var username = robotName.replace("robot_","").replace(" ","");
+			var index = layer.open({
+				type: 2,
+				title: '{% trans "Files List" %}',
+				skin: 'layui-layer-lan',
+				//加上边框
+				area: ['330px', '350px'],
+				//宽高
+				maxmin: true,
+				content: '../openfile/?type=release',
+				btn: ['{% trans "Yes" %}', '{% trans "No" %}', '{% trans "Delete" %}'],
+				btn1: function(index, layero) {
+					var className = document.getElementsByClassName("layui-layer-btn0")[0].className;
+					if (className.indexOf("disable") != -1) {
+						return false;
+					}
+					var iframeWin = window[layero.find('iframe')[0]['name']];
+					var selectfile = iframeWin.getRow();
+					if (selectfile.indexOf(".py") == -1) {
+						layer.msg(gettext('It is not allowed for folder!'));
+						return false;
+					}
+					layer.close(index);
+					var iframe = parent.document.getElementsByTagName("iframe")[0];
+					var win = iframe.contentWindow;
+					if (win.ws == '') {
+						try {
+							win.c_args = JSON.stringify({"action":"run","selectfile":selectfile,"username":username});
+							win.createWs();
+						} catch {
+							win.c_robot_warning();
+						}
+					} else {
+						win.c_args = JSON.stringify({"action":"run","selectfile":selectfile,"username":username});
+						<!--layer.load(2);-->
+						win.ws.onopen();
+					}
+				},
+			})
+		}
+	}
+
+	function scheduleTask(robotName,robotStatus){
+		if (robotStatus == '{% trans "off-line" %}'){
+			layer.msg('{% trans "This robot is offline!" %}', {icon: 5});
+			return false;
+		}else if(robotStatus == '{% trans "busy" %}'){
+			layer.msg('{% trans "This robot is busy!" %}', {icon: 5});
+			return false;
+		}else{
+			var index = layer.open({
+				type: 2,
+				title: false,
+				skin: 'layui-layer-lan',
+				//加上边框
+				area: ['330px', '350px'],
+				//宽高
+				maxmin: false,
+				closeBtn :0,
+				content: '../booktask/?show=yes&robot='+robotName,
+			})
+			layer.full(index);
+		}
+	}
+</script>
+</html>
